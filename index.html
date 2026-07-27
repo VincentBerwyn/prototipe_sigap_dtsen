@@ -1,0 +1,952 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SIGAP DTSEN - Portal Bansos Interaktif</title>
+    <!-- Font Poppins -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Feather Icons -->
+    <script src="https://unpkg.com/feather-icons"></script>
+    <style>
+        /* === GLOBAL STYLES & FIX BOX ALIGNMENT === */
+        :root {
+            --primary: #1e3a8a; 
+            --primary-light: #3b82f6;
+            --accent: #f59e0b;
+            --bg-card: rgba(255, 255, 255, 0.95);
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --border: #cbd5e1;
+            --shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+            --shadow-lg: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+            --radius: 16px; 
+            --radius-sm: 8px;
+        }
+
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+
+        body { 
+            color: var(--text-main); line-height: 1.6; 
+            background: linear-gradient(135deg, #e0e7ff 0%, #f8fafc 50%, #dbeafe 100%);
+            background-attachment: fixed; min-height: 100vh; overflow-x: hidden;
+        }
+
+        /* Navbar & Menu */
+        nav {
+            background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(12px); padding: 1rem 5%;
+            display: flex; justify-content: space-between; align-items: center; position: sticky;
+            top: 0; z-index: 100; border-bottom: 1px solid rgba(255,255,255,0.4); box-shadow: var(--shadow-sm);
+        }
+        .nav-brand { display: flex; align-items: center; gap: 12px; cursor: pointer; }
+        .nav-brand img { height: 40px; width: auto; object-fit: contain; }
+        .nav-brand h1 { color: var(--primary); font-weight: 700; font-size: 1.5rem; letter-spacing: -0.5px; }
+        .nav-brand h1 span { color: var(--accent); }
+        
+        .nav-right-cluster { display: flex; align-items: center; gap: 20px;}
+        .nav-menu { display: flex; align-items: center; gap: 20px; font-weight: 500; }
+        .nav-menu a { cursor: pointer; color: var(--text-main); transition: 0.2s; text-decoration: none; }
+        .nav-menu a:hover { color: var(--primary-light); }
+
+        .nav-buttons { display: flex; align-items: center; gap: 10px; }
+        .nav-buttons button {
+            background: transparent; color: var(--primary); border: 1px solid var(--primary); padding: 0.5rem 1rem;
+            border-radius: var(--radius-sm); cursor: pointer; font-weight: 500; transition: all 0.2s ease;
+            display: inline-flex; align-items: center; gap: 6px;
+        }
+        .nav-buttons button:active, .btn-submit:active, .btn-action:active { transform: scale(0.95); }
+        .nav-buttons .btn-primary { background: var(--primary); color: white; border: none; box-shadow: var(--shadow-sm); }
+        .nav-buttons .btn-primary:hover { background: var(--primary-light); }
+
+        /* Setup Halaman */
+        .page { display: none; padding: 2rem 5%; max-width: 1280px; margin: 0 auto; animation: fadeUp 0.5s ease; }
+        .page.active { display: block; }
+        #home.page { padding: 0; max-width: 100%; }
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Bagian Homepage (Seamless) */
+        .seamless-section { padding: 4rem 5%; display: flex; flex-direction: column; align-items: center; text-align: center; }
+        .seamless-hero { background: linear-gradient(135deg, var(--primary) 0%, #2563eb 100%); color: white; position: relative; overflow: hidden; padding-top: 5rem; padding-bottom: 5rem;}
+        .seamless-hero h2 { font-size: 3rem; font-weight: 700; margin-bottom: 1rem; line-height: 1.2; max-width: 900px; margin-inline: auto; }
+        .seamless-hero p { font-size: 1.1rem; opacity: 0.9; max-width: 750px; margin: 0 auto 2rem; font-weight: 300; }
+        
+        .seamless-about { background: transparent; padding: 5rem 5%; color: var(--text-main); }
+        .seamless-about h3 { font-size: 2rem; color: var(--primary); margin-bottom: 1.5rem; }
+        .seamless-about p { font-size: 1.05rem; color: var(--text-muted); max-width: 900px; margin: 0 auto; line-height: 1.8; }
+
+        /* Kotak (Card) Dashboard */
+        .card { 
+            background: var(--bg-card); padding: 2rem; border-radius: var(--radius); 
+            box-shadow: var(--shadow-sm); border: 1px solid rgba(255,255,255,0.8); 
+            margin-bottom: 1.5rem; position: relative; overflow: hidden; backdrop-filter: blur(5px);
+        }
+        .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 1.5rem; }
+        .grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; }
+
+        /* Carousel Slideshow */
+        .carousel-wrapper { position: relative; width: 100%; padding: 0 5%; margin: -3rem 0 3rem 0; z-index: 10; }
+        .carousel-container { overflow: hidden; border-radius: var(--radius); }
+        .carousel-track { display: flex; transition: transform 0.6s cubic-bezier(0.25, 1, 0.5, 1); }
+        .carousel-slide { min-width: 25%; padding: 0 10px; box-sizing: border-box; }
+        .carousel-slide img {
+            width: 100%; height: 220px; object-fit: cover; border-radius: var(--radius);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.15); border: 5px solid white; background-color: #cbd5e1;
+        }
+        .carousel-btn {
+            position: absolute; top: 50%; transform: translateY(-50%);
+            background: white; border: none; border-radius: 50%; width: 45px; height: 45px; 
+            display: flex; align-items: center; justify-content: center; cursor: pointer; 
+            box-shadow: var(--shadow-lg); color: var(--primary); transition: 0.2s; z-index: 20;
+        }
+        .carousel-btn:hover { background: var(--primary); color: white; }
+        .carousel-btn.prev { left: 2%; }
+        .carousel-btn.next { right: 2%; }
+        
+        /* Notifikasi Toast (Tengah Atas) */
+        .toast-container {
+            position: fixed; top: 30px; left: 50%; transform: translateX(-50%); z-index: 99999;
+            display: flex; flex-direction: column; gap: 10px; align-items: center; pointer-events: none; width: 90%; max-width: 400px;
+        }
+        .toast {
+            background: #10b981; color: white; padding: 15px 25px; border-radius: 30px;
+            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.3); position: relative; overflow: hidden;
+            animation: slideDown 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); font-size: 0.95rem;
+            display: flex; align-items: center; gap: 10px; font-weight: 500; pointer-events: auto; width: 100%;
+        }
+        .toast.error { background: #ef4444; }
+        .toast.hide { animation: fadeOutTop 0.3s ease-out forwards; }
+        .toast-progress {
+            position: absolute; bottom: 0; left: 0; height: 4px; background: rgba(255,255,255,0.8);
+            width: 100%; animation: progress 3s linear forwards;
+        }
+        @keyframes slideDown { from { transform: translateY(-100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        @keyframes fadeOutTop { from { transform: translateY(0); opacity: 1; } to { transform: translateY(-100%); opacity: 0; } }
+        @keyframes progress { from { width: 100%; } to { width: 0%; } }
+
+        /* Formulir */
+        .auth-tabs { display: flex; background: #f1f5f9; border-radius: var(--radius-sm); padding: 5px; margin-bottom: 2rem; }
+        .auth-tab {
+            flex: 1; text-align: center; padding: 0.8rem; cursor: pointer; border-radius: 6px;
+            font-weight: 500; color: var(--text-muted); transition: all 0.2s ease; border: none; background: transparent; font-size: 0.95rem;
+        }
+        .auth-tab.active { background: white; color: var(--primary); box-shadow: var(--shadow-sm); }
+
+        .form-group { margin-bottom: 1.2rem; text-align: left; }
+        .form-group label { display: flex; align-items: center; gap: 6px; margin-bottom: 0.4rem; font-weight: 500; font-size: 0.9rem; color: var(--text-main); }
+        .form-group input:not([type="checkbox"]), .form-group select {
+            width: 100%; height: 45px; padding: 0 1rem; border: 1px solid var(--border); border-radius: var(--radius-sm); 
+            font-size: 0.95rem; outline: none; transition: 0.3s; background: #fafafa;
+        }
+        .form-group textarea {
+            width: 100%; padding: 1rem; border: 1px solid var(--border); border-radius: var(--radius-sm); 
+            font-size: 0.95rem; outline: none; transition: 0.3s; background: #fafafa; resize: none; 
+        }
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: var(--primary-light); background: white; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15); }
+        
+        .btn-submit { 
+            background: var(--primary); color: white; border: none; padding: 0 1rem; height: 48px; width: 100%; 
+            border-radius: var(--radius-sm); font-weight: 600; font-size: 1rem; cursor: pointer; transition: 0.2s; 
+            box-shadow: var(--shadow-sm); display: flex; align-items: center; justify-content: center; gap: 8px;
+        }
+        .btn-submit:hover { background: var(--primary-light); }
+
+        /* UI Kuota Stepper Baru (Bisa Ketik) */
+        .quota-stepper { 
+            display: inline-flex; align-items: center; border: 1px solid var(--border); 
+            border-radius: var(--radius-sm); overflow: hidden; height: 45px; background: white; width: 100%; max-width: 160px;
+        }
+        .quota-stepper button { 
+            background: #f1f5f9; border: none; padding: 0 15px; font-size: 1.2rem; cursor: pointer; 
+            color: var(--primary); transition: 0.2s; height: 100%; font-weight: bold; flex-shrink: 0;
+        }
+        .quota-stepper button:hover { background: #e2e8f0; }
+        .quota-stepper input { 
+            border: none; border-left: 1px solid var(--border); border-right: 1px solid var(--border); 
+            text-align: center; font-size: 1.1rem; font-weight: 600; color: var(--primary); 
+            height: 100%; width: 100%; outline: none; -moz-appearance: textfield;
+        }
+        .quota-stepper input::-webkit-outer-spin-button, .quota-stepper input::-webkit-inner-spin-button { 
+            -webkit-appearance: none; margin: 0; 
+        }
+
+        /* Tabel Dashboard */
+        .dash-header { margin-bottom: 2rem; }
+        .dash-header h2 { font-size: 1.8rem; color: var(--primary); line-height: 1.2; display: flex; align-items: center; gap: 10px; margin-bottom: 5px; }
+        .dash-header p { color: var(--text-muted); }
+        
+        .table-container { max-height: 350px; overflow-y: auto; overflow-x: auto; border: 1px solid var(--border); border-radius: var(--radius-sm); background: white;}
+        table { width: 100%; border-collapse: collapse; min-width: 700px; }
+        th, td { padding: 1rem; text-align: left; border-bottom: 1px solid var(--border); vertical-align: middle; }
+        th { background: #f8fafc; font-weight: 600; color: var(--text-muted); text-transform: uppercase; font-size: 0.8rem; position: sticky; top: 0; z-index: 10; box-shadow: 0 1px 0 var(--border);}
+        tr:hover td { background: #f1f5f9; }
+        
+        .badge { 
+            padding: 0.4rem 0.8rem; border-radius: 30px; font-size: 0.75rem; font-weight: 600; 
+            display: inline-flex; align-items: center; justify-content: center; gap: 5px; white-space: nowrap; 
+        }
+        .badge-red { background: #fee2e2; color: #dc2626; border: 1px solid #fecaca; }
+        .badge-green { background: #d1fae5; color: #059669; border: 1px solid #a7f3d0; }
+        .badge-yellow { background: #fef3c7; color: #d97706; border: 1px solid #fde68a; }
+        .badge-gray { background: #f1f5f9; color: #64748b; border: 1px solid #cbd5e1; }
+        .badge-blue { background: #dbeafe; color: #1e3a8a; border: 1px solid #bfdbfe; }
+        
+        .btn-action { 
+            background: var(--primary-light); color: white; border: none; height: 35px; padding: 0 1rem; 
+            border-radius: var(--radius-sm); cursor: pointer; font-size: 0.85rem; font-weight: 500; transition: 0.2s; 
+            white-space: nowrap; display: inline-flex; align-items: center; gap: 5px;
+        }
+        .btn-action:hover { background: var(--primary); }
+        .btn-action-alt { background: var(--accent); color: white; }
+        .btn-action-alt:hover { background: #d97706; }
+
+        /* Riwayat Penyaluran (Pemerintah) - FIX Lingkaran Sempurna */
+        .history-list { margin-top: 15px; display: flex; flex-direction: column; gap: 10px; }
+        .history-item { 
+            background: #f8fafc; border: 1px solid var(--border); padding: 12px 15px; 
+            border-radius: var(--radius-sm); display: flex; align-items: flex-start; gap: 15px; font-size: 0.95rem; 
+        }
+        .history-icon {
+            width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; 
+            border-radius: 50%; flex-shrink: 0; /* Mencegah ikon menjadi lonjong/gepeng */
+        }
+
+        /* Modal (Pop-up) */
+        .modal-overlay {
+            display: none !important; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6);
+            z-index: 9999; align-items: center; justify-content: center; backdrop-filter: blur(5px);
+        }
+        .modal-overlay.active { display: flex !important; animation: fadeIn 0.3s ease; }
+        .modal-content {
+            background: white; padding: 2.5rem; border-radius: var(--radius); width: 90%; max-width: 500px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); position: relative; border-top: 6px solid var(--primary);
+        }
+        .modal-close { position: absolute; top: 1rem; right: 1.5rem; cursor: pointer; color: var(--text-muted); border: none; background: transparent; transition: 0.2s; }
+        .modal-close:hover { color: #dc2626; }
+        
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        /* === MOBILE RESPONSIVE TWEAKS === */
+        @media (max-width: 768px) {
+            nav { flex-direction: column; gap: 15px; padding: 1rem; }
+            .nav-brand { justify-content: center; width: 100%; }
+            .nav-right-cluster { flex-direction: column; width: 100%; gap: 15px; }
+            .nav-menu { margin: 0; justify-content: center; width: 100%; }
+            .nav-buttons { width: 100%; justify-content: center; }
+            
+            .grid-2, .grid-3 { grid-template-columns: 1fr; }
+            
+            .seamless-hero { padding-top: 3rem; padding-bottom: 6rem; }
+            .seamless-hero h2 { font-size: 2.2rem; }
+            .carousel-wrapper { margin-top: -4rem; padding: 0 2%; }
+            .carousel-slide { min-width: 100%; }
+            .carousel-slide img { height: 180px; }
+            .carousel-btn { width: 35px; height: 35px; }
+            
+            .card { padding: 1.5rem; }
+            .page { padding: 1.5rem 5%; }
+            
+            .btn-action { width: 100%; justify-content: center; margin-top: 5px; }
+            .quota-stepper { max-width: 100%; }
+            
+            .history-item { flex-direction: row; align-items: flex-start; }
+            .dash-header h2 { font-size: 1.5rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Wadah Toast -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <!-- NAVBAR -->
+    <nav>
+        <div class="nav-brand" onclick="scrollToBeranda()">
+            <img src="asset/pemerintah.png" alt="Logo" onerror="this.style.display='none'">
+            <h1>SIGAP <span>DTSEN</span></h1>
+        </div>
+        
+        <div class="nav-right-cluster">
+            <div class="nav-menu" id="navLinks">
+                <a onclick="scrollToBeranda()">Beranda</a>
+                <a onclick="scrollToTentang()">Tentang</a>
+            </div>
+            
+            <!-- Tombol Disatukan -->
+            <div class="nav-buttons" id="navAuth">
+                <button class="btn-primary" onclick="navigate('login')"><i data-feather="user" style="width: 16px;"></i> Masuk / Daftar</button>
+            </div>
+            
+            <div class="nav-buttons" id="navLogout" style="display: none;">
+                <button class="btn-primary" onclick="logout()"><i data-feather="log-out" style="width: 16px;"></i> Keluar</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 1. HALAMAN BERANDA -->
+    <div id="home" class="page active">
+        
+        <div class="seamless-section seamless-hero">
+            <div style="display: inline-flex; align-items: center; background: rgba(255,255,255,0.2); padding: 0.4rem 1.2rem; border-radius: 30px; font-size: 0.9rem; margin-bottom: 1.5rem; backdrop-filter: blur(5px);">
+                <i data-feather="check-circle" style="width: 14px; margin-right: 6px;"></i> Layanan Terpadu Verifikasi Sosial
+            </div>
+            <h2>Kawal Hak Anda, Pastikan Bansos Tepat Sasaran</h2>
+            <p>Sistem ini memberikan Anda kendali untuk memeriksa dan memverifikasi kelayakan data bansos keluarga secara mandiri dengan transparansi penuh.</p>
+            <button class="btn-primary" style="padding: 0 2rem; height: 50px; font-size: 1.1rem; border-radius: 30px; background: var(--accent); color:#fff; box-shadow: 0 4px 15px rgba(245, 158, 11, 0.4);" onclick="navigate('login')">
+                <i data-feather="search" style="width: 18px;"></i> Cek Status Saya Sekarang
+            </button>
+        </div>
+
+        <div class="carousel-wrapper">
+            <button class="carousel-btn prev" onclick="moveSlide(-1)"><i data-feather="chevron-left"></i></button>
+            <div class="carousel-container">
+                <div class="carousel-track" id="carouselTrack">
+                    <!-- Assets 1 - 10 -->
+                    <div class="carousel-slide"><img src="asset/1.png" alt="Galeri 1"></div>
+                    <div class="carousel-slide"><img src="asset/2.png" alt="Galeri 2"></div>
+                    <div class="carousel-slide"><img src="asset/3.png" alt="Galeri 3"></div>
+                    <div class="carousel-slide"><img src="asset/4.png" alt="Galeri 4"></div>
+                    <div class="carousel-slide"><img src="asset/5.png" alt="Galeri 5"></div>
+                    <div class="carousel-slide"><img src="asset/6.png" alt="Galeri 6"></div>
+                    <div class="carousel-slide"><img src="asset/7.png" alt="Galeri 7"></div>
+                    <div class="carousel-slide"><img src="asset/8.png" alt="Galeri 8"></div>
+                    <div class="carousel-slide"><img src="asset/9.png" alt="Galeri 9"></div>
+                    <div class="carousel-slide"><img src="asset/10.png" alt="Galeri 10"></div>
+                </div>
+            </div>
+            <button class="carousel-btn next" onclick="moveSlide(1)"><i data-feather="chevron-right"></i></button>
+        </div>
+
+        <div id="tentangSection" class="seamless-section seamless-about">
+            <div style="background: #fef3c7; width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 1rem;">
+                <i data-feather="info" style="color: var(--accent); width: 28px; height: 28px;"></i>
+            </div>
+            <h3>Tentang SIGAP DTSEN</h3>
+            <p>SIGAP DTSEN merupakan inovasi sistem digital yang dirancang sebagai penyempurna Data Tunggal Sosial Ekonomi Nasional (DTSEN)[cite: 1]. Platform ini menghubungkan pemerintah, petugas pendamping lapangan, serta masyarakat secara langsung dalam satu ekosistem data yang terpadu[cite: 1]. Melalui deteksi anomali AI dan validasi lapangan, SIGAP bertujuan secara radikal menekan angka salah sasaran dan menjamin setiap hak bantuan negara benar-benar tersalurkan kepada warga yang membutuhkan[cite: 1].</p>
+        </div>
+    </div>
+
+    <!-- 2. HALAMAN LOGIN -->
+    <div id="login" class="page">
+        <div class="card" style="max-width: 450px; margin: 0 auto; text-align: center;">
+            <div style="background: #eff6ff; width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem;">
+                <i data-feather="lock" style="color: var(--primary); width: 28px; height: 28px;"></i>
+            </div>
+            <h2 style="margin-bottom: 1.5rem; color: var(--primary);">Autentikasi Pengguna</h2>
+            
+            <div class="auth-tabs">
+                <button class="auth-tab active" id="tabLoginWarga" onclick="switchLogin('warga')">Portal Warga</button>
+                <button class="auth-tab" id="tabLoginAparatur" onclick="switchLogin('aparatur')">Portal Aparatur</button>
+            </div>
+
+            <div id="formLoginWarga">
+                <div class="form-group">
+                    <label><i data-feather="credit-card" style="width:16px;"></i> NIK (Wajib 16 Digit Angka)</label>
+                    <input type="text" id="loginNik" placeholder="Contoh: 3578012345678901" maxlength="16">
+                </div>
+                <div class="form-group">
+                    <label><i data-feather="key" style="width:16px;"></i> Kata Sandi</label>
+                    <input type="password" id="loginPassWarga" placeholder="Masukkan kata sandi">
+                </div>
+                <button class="btn-submit" onclick="processLogin('warga')">Masuk sebagai Warga <i data-feather="arrow-right" style="width: 18px;"></i></button>
+            </div>
+
+            <div id="formLoginAparatur" style="display: none;">
+                <div class="form-group">
+                    <label><i data-feather="shield" style="width:16px;"></i> Kewenangan</label>
+                    <select id="loginRoleAparatur">
+                        <option value="pemerintah">Pemerintah Pusat / Dinsos</option>
+                        <option value="petugas">Petugas Pendamping Desa</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label><i data-feather="user" style="width:16px;"></i> Username (Hanya Huruf)</label>
+                    <input type="text" id="loginIdAparatur" placeholder="Contoh: joko">
+                </div>
+                <div class="form-group">
+                    <label><i data-feather="key" style="width:16px;"></i> Kata Sandi</label>
+                    <input type="password" id="loginPassAparatur" placeholder="Masukkan kata sandi">
+                </div>
+                <button class="btn-submit" onclick="processLogin('aparatur')">Masuk Sistem <i data-feather="arrow-right" style="width: 18px;"></i></button>
+            </div>
+            <p style="margin-top: 1.5rem; font-size: 0.9rem;">Belum memiliki akun? <a onclick="navigate('register')" style="color: var(--primary-light); font-weight: 600; cursor: pointer;">Daftar Disini</a></p>
+        </div>
+    </div>
+
+    <!-- 3. HALAMAN REGISTRASI -->
+    <div id="register" class="page">
+        <div class="card" style="max-width: 500px; margin: 0 auto;">
+            <div style="background: #eff6ff; width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem;">
+                <i data-feather="user-plus" style="color: var(--primary); width: 28px; height: 28px;"></i>
+            </div>
+            <h2 style="text-align: center; margin-bottom: 1.5rem; color: var(--primary);">Registrasi Baru</h2>
+            
+            <div class="auth-tabs">
+                <button class="auth-tab active" id="tabRegWarga" onclick="switchReg('warga')">Daftar Warga</button>
+                <button class="auth-tab" id="tabRegPetugas" onclick="switchReg('petugas')">Daftar Petugas</button>
+            </div>
+
+            <div id="formRegWarga">
+                <div class="form-group"><label>NIK Lengkap (16 Digit Angka)</label><input type="text" placeholder="Masukkan 16 Digit NIK" maxlength="16"></div>
+                <div class="form-group"><label>Nama Sesuai KTP</label><input type="text" placeholder="Masukkan Nama Lengkap"></div>
+                <div class="form-group"><label>Nomor WhatsApp (Aktif)</label><input type="text" placeholder="Contoh: 08123456789"></div>
+                <div class="form-group"><label>Buat Kata Sandi</label><input type="password" placeholder="Minimal 8 karakter"></div>
+            </div>
+            <div id="formRegPetugas" style="display: none;">
+                <div class="form-group"><label>Username (Hanya Huruf)</label><input type="text" placeholder="Contoh: budi"></div>
+                <div class="form-group"><label>Nama Lengkap</label><input type="text" placeholder="Nama Lengkap"></div>
+                <div class="form-group"><label>Wilayah Penugasan</label><input type="text" placeholder="Contoh: Kecamatan Genteng"></div>
+                <div class="form-group"><label>Nomor WhatsApp (Aktif)</label><input type="text" placeholder="Contoh: 08123456789"></div>
+                <div class="form-group"><label>Buat Kata Sandi</label><input type="password" placeholder="Minimal 8 karakter"></div>
+            </div>
+            <button class="btn-submit" onclick="submitRegistration()" style="margin-top: 1rem;">Ajukan Verifikasi Akun <i data-feather="check-circle" style="width: 18px;"></i></button>
+        </div>
+    </div>
+
+    <!-- 4. DASHBOARD PEMERINTAH -->
+    <div id="dash-pemerintah" class="page">
+        <div class="dash-header">
+            <h2><i data-feather="monitor" style="width: 28px; height: 28px;"></i> Pusat Kendali Distribusi</h2>
+            <p>Pantau statistika dan atur distribusi penyaluran bansos kepada warga terverifikasi.</p>
+        </div>
+        
+        <div class="grid-3" style="margin-bottom: 2rem;">
+            <div class="card" style="padding: 1.5rem; margin-bottom: 0; border-left: 4px solid var(--primary-light);">
+                <p style="font-size: 0.9rem; color: var(--text-muted); font-weight: 600;">Total Warga Layak</p>
+                <h3 style="font-size: 2rem; color: var(--primary);">15,000 <span style="font-size:1rem; font-weight:400; color:var(--text-muted);">Jiwa</span></h3>
+            </div>
+            <div class="card" style="padding: 1.5rem; margin-bottom: 0; border-left: 4px solid #10b981;">
+                <p style="font-size: 0.9rem; color: var(--text-muted); font-weight: 600;">Sudah Menerima Bansos</p>
+                <h3 style="font-size: 2rem; color: #059669;" id="statSudah">2,550 <span style="font-size:1rem; font-weight:400; color:var(--text-muted);">Jiwa</span></h3>
+            </div>
+            <div class="card" style="padding: 1.5rem; margin-bottom: 0; border-left: 4px solid #ef4444;">
+                <p style="font-size: 0.9rem; color: var(--text-muted); font-weight: 600;">Belum Menerima Bansos</p>
+                <h3 style="font-size: 2rem; color: #dc2626;" id="statBelum">12,450 <span style="font-size:1rem; font-weight:400; color:var(--text-muted);">Jiwa</span></h3>
+            </div>
+        </div>
+
+        <div class="card" style="border-top: 4px solid var(--accent);">
+            <h3 style="font-size: 1.2rem; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 8px;">
+                <i data-feather="send" style="color: var(--accent);"></i> Distribusi & Penjadwalan Pencairan
+            </h3>
+            
+            <div class="grid-2" style="align-items: end;">
+                <div class="form-group" style="margin: 0;">
+                    <label>Tentukan Kuota Penyaluran (Jiwa)</label>
+                    <!-- Dimulai dari Nol -->
+                    <div class="quota-stepper">
+                        <button onclick="changeQuota(-50)">-</button>
+                        <input type="number" id="inputKuotaBansos" value="0" min="0">
+                        <button onclick="changeQuota(50)">+</button>
+                    </div>
+                </div>
+                <div class="form-group" style="margin: 0;">
+                    <label>Pilih Tanggal Penyaluran</label>
+                    <div style="display: flex; gap: 10px;">
+                        <input type="date" id="inputTglPenyaluran" style="flex: 1;">
+                        <button class="btn-action btn-action-alt" style="height: 45px; padding: 0 1.5rem;" onclick="distributeQuota()">Salurkan</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Riwayat Sinkronisasi -->
+            <div style="margin-top: 2rem; border-top: 1px dashed var(--border); padding-top: 1.5rem;">
+                <h4 style="font-size: 1rem; color: var(--text-main); margin-bottom: 10px;">Riwayat Sinkronisasi Penyaluran</h4>
+                <div class="history-list" id="historyDistribusi">
+                    <!-- History Dinamis -->
+                    <div class="history-item">
+                        <div class="history-icon" style="background: #d1fae5; color: #059669;"><i data-feather="check" style="width: 18px; height: 18px;"></i></div>
+                        <div>
+                            <span style="font-weight: 600; color: var(--primary);">Ditetapkan 1 Juli 2026</span><br>
+                            Kuota: 2.550 Jiwa <strong style="color: #059669;">(Tersalurkan)</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 10px;">
+                <h3 style="font-size: 1.2rem; display: flex; align-items: center; gap: 8px;">
+                    <i data-feather="users" style="color: var(--primary);"></i> Data Target Semua Warga
+                </h3>
+                <div class="form-group" style="margin: 0; width: 250px; max-width: 100%;">
+                    <select id="filterKecamatan" onchange="renderTablePemerintah()">
+                        <option value="semua">Semua Kecamatan (20 Data)</option>
+                        <option value="Genteng">Kecamatan Genteng</option>
+                        <option value="Tegalsari">Kecamatan Tegalsari</option>
+                        <option value="Gubeng">Kecamatan Gubeng</option>
+                    </select>
+                </div>
+            </div>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr><th>No. KK / Nama</th><th>Kecamatan</th><th>Status Analisis AI / Laporan</th><th>Risiko</th><th>Tindakan Lanjutan</th></tr>
+                    </thead>
+                    <tbody id="tablePemerintahBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- 5. DASHBOARD PETUGAS DESA -->
+    <div id="dash-petugas" class="page">
+        <div class="dash-header">
+            <h2><i data-feather="clipboard" style="width: 28px; height: 28px;"></i> Panel Kerja Petugas</h2>
+            <p style="font-weight: 500; color: var(--primary); font-size: 1.05rem;"><i data-feather="map-pin" style="width: 16px; vertical-align: middle;"></i> Wilayah: Kecamatan Genteng, Surabaya</p>
+        </div>
+
+        <div class="card">
+            <h3 style="margin-bottom: 1rem; font-size: 1.2rem; display: flex; align-items: center; gap: 8px;">
+                <i data-feather="list" style="color: var(--primary);"></i> Antrean Verifikasi Lapangan
+            </h3>
+            <div class="table-container" style="max-height: 250px;">
+                <table>
+                    <thead><tr><th>Asal Laporan</th><th>Subjek Warga</th><th>Keterangan Tugas</th><th>Status</th><th>Aksi</th></tr></thead>
+                    <tbody id="petugasAntreanBody">
+                        <!-- Render dari JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="card" style="border-top: 4px solid #10b981;">
+            <h3 style="margin-bottom: 1rem; font-size: 1.2rem; display: flex; align-items: center; gap: 8px;">
+                <i data-feather="check-circle" style="color: #059669;"></i> Riwayat Verifikasi Selesai
+            </h3>
+            <div class="table-container" style="max-height: 250px;">
+                <table>
+                    <thead><tr><th>Asal Laporan</th><th>Subjek Warga</th><th>Keterangan Tugas</th><th>Status Akhir</th></tr></thead>
+                    <tbody id="petugasRiwayatBody">
+                        <tr><td colspan="4" style="text-align: center; color: var(--text-muted); font-size: 0.9rem;">Belum ada riwayat verifikasi selesai.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- 6. DASHBOARD WARGA -->
+    <div id="dash-warga" class="page">
+        <div class="dash-header">
+            <h2><i data-feather="home" style="width: 28px; height: 28px;"></i> Portal Layanan Mandiri</h2>
+            <p>Negara hadir untuk menjamin hak Anda apabila data sesuai dengan kriteria yang ditetapkan.</p>
+        </div>
+
+        <div class="grid-2">
+            <div class="card" style="text-align: center; border-top: 4px solid var(--primary-light);" id="wargaStatusArea">
+                <!-- Status diisi secara dinamis oleh JavaScript -->
+            </div>
+
+            <div class="card">
+                <h3 style="margin-bottom: 0.5rem; font-size: 1.3rem; display: flex; align-items: center; gap: 8px;">
+                    <i data-feather="edit-3" style="color: var(--accent);"></i> Ajukan Sanggahan
+                </h3>
+                <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 1.5rem;">Laporkan jika kondisi ekonomi sedang sulit namun belum mendapat hak bantuan.</p>
+                
+                <div class="form-group">
+                    <label>Pilih Alasan Sanggahan</label>
+                    <select id="kategoriSanggahan" onchange="document.getElementById('boxLainnya').style.display = (this.value === 'lainnya') ? 'block' : 'none';">
+                        <option value="1">Kehilangan pekerjaan / sumber penghasilan utama</option>
+                        <option value="2">Rumah mengalami kerusakan berat / terdampak bencana</option>
+                        <option value="3">Tulang punggung keluarga meninggal dunia</option>
+                        <option value="4">Anggota keluarga menderita sakit kritis/kronis</option>
+                        <option value="5">Belum terdata meski kondisi ekonomi di bawah rata-rata</option>
+                        <option value="lainnya">Lainnya (Sebutkan secara spesifik)</option>
+                    </select>
+                </div>
+                
+                <div class="form-group" id="boxLainnya" style="display: none; animation: fadeUp 0.3s ease;">
+                    <label>Deskripsi Spesifik</label>
+                    <textarea rows="4" placeholder="Ketikkan secara detail..."></textarea>
+                </div>
+                <button class="btn-submit" onclick="showToast('Sanggahan Anda berhasil direkam dan masuk antrean verifikasi Petugas.', 'success')">
+                    <i data-feather="send" style="width: 18px;"></i> Kirim Laporan Sanggahan
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 1: ATUR JADWAL (PETUGAS) -->
+    <div class="modal-overlay" id="modalJadwal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeModal('modalJadwal')"><i data-feather="x"></i></button>
+            <h3 style="margin-bottom: 1rem; color: var(--primary); display: flex; align-items: center; gap: 8px;"><i data-feather="calendar"></i> Jadwal Verifikasi</h3>
+            <div class="form-group"><label>Pilih Tanggal</label><input type="date" id="inputJadwal"></div>
+            <button class="btn-submit" onclick="submitJadwal()"><i data-feather="save" style="width: 18px;"></i> Simpan Jadwal</button>
+        </div>
+    </div>
+
+    <!-- MODAL 2: PROSES VERIFIKASI (PETUGAS) -->
+    <div class="modal-overlay" id="modalVerifikasi">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeModal('modalVerifikasi')"><i data-feather="x"></i></button>
+            <h3 style="margin-bottom: 1rem; color: var(--primary); display: flex; align-items: center; gap: 8px;"><i data-feather="file-text"></i> Formulir Verifikasi</h3>
+            <div class="form-group"><label>Tanggal Pelaksanaan Riil</label><input type="date"></div>
+            <div class="form-group"><label>Unggah Foto Bukti Faktual</label><input type="file" accept="image/*" style="padding: 10px; background: #f8fafc; height: auto;"></div>
+            <div class="form-group">
+                <label>Kesimpulan Pendamping</label>
+                <select><option>Layak diberi bantuan</option><option>Tidak layak diberi bantuan</option></select>
+            </div>
+            <div class="form-group"><label>Catatan Opsional</label><textarea rows="2" placeholder="Tulis catatan kondisi..."></textarea></div>
+            <button class="btn-submit" onclick="submitVerifikasi()" style="background: var(--accent);"><i data-feather="upload-cloud" style="width: 18px;"></i> Selesai & Kirim Hasil</button>
+        </div>
+    </div>
+
+    <script>
+        feather.replace();
+
+        // Custom Toast Center Top
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = 'toast ' + (type === 'error' ? 'error' : '');
+            let icon = type === 'error' ? 'alert-circle' : 'info';
+            toast.innerHTML = `<i data-feather="${icon}" style="width:18px;"></i> <span>${message}</span> <div class="toast-progress"></div>`;
+            container.appendChild(toast);
+            feather.replace(); 
+            setTimeout(() => {
+                toast.classList.add('hide');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        // Carousel Seamless Responsive
+        let currentSlide = 0; const maxSlide = 6; 
+        function moveSlide(direction) {
+            currentSlide += direction;
+            if (currentSlide > maxSlide) currentSlide = 0;
+            if (currentSlide < 0) currentSlide = maxSlide;
+            let percentage = window.innerWidth <= 768 ? 100 : 25;
+            document.getElementById('carouselTrack').style.transform = `translateX(-${currentSlide * percentage}%)`;
+        }
+        setInterval(() => { moveSlide(1); }, 3000);
+
+        // Routing & Menu Smooth 
+        function navigate(pageId) {
+            document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
+            document.getElementById(pageId).classList.add('active');
+            
+            // Hindari loncat kasar jika hanya pindah menu, gunakan smooth scroll jika beralih
+            if(pageId !== 'home') window.scrollTo(0,0);
+            if(pageId === 'dash-pemerintah') renderTablePemerintah();
+            if(pageId === 'dash-petugas') renderTablePetugas();
+        }
+
+        function scrollToBeranda() {
+            let homePage = document.getElementById('home');
+            if(!homePage.classList.contains('active')) {
+                navigate('home');
+            }
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function scrollToTentang() {
+            let homePage = document.getElementById('home');
+            if(!homePage.classList.contains('active')) {
+                navigate('home');
+            }
+            setTimeout(() => { document.getElementById('tentangSection').scrollIntoView({ behavior: 'smooth' }); }, 50);
+        }
+
+        function switchLogin(type) {
+            document.querySelectorAll('#login .auth-tab').forEach(tab => tab.classList.remove('active'));
+            document.getElementById('formLoginWarga').style.display = 'none';
+            document.getElementById('formLoginAparatur').style.display = 'none';
+            if (type === 'warga') {
+                document.getElementById('tabLoginWarga').classList.add('active');
+                document.getElementById('formLoginWarga').style.display = 'block';
+            } else {
+                document.getElementById('tabLoginAparatur').classList.add('active');
+                document.getElementById('formLoginAparatur').style.display = 'block';
+            }
+        }
+
+        function switchReg(type) {
+            document.querySelectorAll('#register .auth-tab').forEach(tab => tab.classList.remove('active'));
+            document.getElementById('formRegWarga').style.display = 'none';
+            document.getElementById('formRegPetugas').style.display = 'none';
+            if (type === 'warga') {
+                document.getElementById('tabRegWarga').classList.add('active');
+                document.getElementById('formRegWarga').style.display = 'block';
+            } else {
+                document.getElementById('tabRegPetugas').classList.add('active');
+                document.getElementById('formRegPetugas').style.display = 'block';
+            }
+        }
+
+        function submitRegistration() {
+            showToast("Pendaftaran berhasil! Kabar verifikasi akan dikirimkan melalui WhatsApp.", "success");
+            setTimeout(() => { navigate('login'); }, 3000);
+        }
+
+        // Login
+        function processLogin(type) {
+            let role = '';
+            if (type === 'warga') {
+                const nik = document.getElementById('loginNik').value;
+                const pass = document.getElementById('loginPassWarga').value;
+                if(!nik || !pass) return showToast('Lengkapi NIK dan Kata Sandi!', 'error');
+                const regexNumbers = /^\d{16}$/;
+                if(!regexNumbers.test(nik)) return showToast('NIK harus tepat 16 digit Angka!', 'error');
+                role = 'warga';
+            } else {
+                const username = document.getElementById('loginIdAparatur').value;
+                const pass = document.getElementById('loginPassAparatur').value;
+                if(!username || !pass) return showToast('Lengkapi Username dan Kata Sandi!', 'error');
+                const regexLetters = /^[a-zA-Z]+$/;
+                if(!regexLetters.test(username)) return showToast('Username Aparatur hanya boleh huruf!', 'error');
+                role = document.getElementById('loginRoleAparatur').value;
+            }
+
+            document.getElementById('navLinks').style.display = 'none';
+            document.getElementById('navAuth').style.display = 'none';
+            document.getElementById('navLogout').style.display = 'block';
+            
+            showToast("Login diverifikasi, mengalihkan halaman...");
+            setTimeout(() => {
+                if (role === 'warga') { generateRandomWargaStatus(); navigate('dash-warga'); }
+                else if (role === 'petugas') navigate('dash-petugas');
+                else if (role === 'pemerintah') navigate('dash-pemerintah');
+            }, 800);
+        }
+
+        function logout() {
+            document.querySelectorAll('input, textarea').forEach(input => input.value = '');
+            document.getElementById('navLinks').style.display = 'flex';
+            document.getElementById('navAuth').style.display = 'block';
+            document.getElementById('navLogout').style.display = 'none';
+            scrollToBeranda();
+            showToast("Anda telah keluar dari sistem.");
+        }
+
+        // ================= LOGIKA PETUGAS =================
+        let tugasPetugas = [
+            { id: 1, asal: "AI Pusat", icon: "cpu", subjek: "Budi Santoso", ket: "Cek keberadaan kendaraan roda 4.", status: "Belum Dijadwal", statusColor: "badge-red" },
+            { id: 2, asal: "Warga", icon: "user", subjek: "Agus Pratama", ket: "Laporan kerusakan rumah berat.", status: "Belum Dijadwal", statusColor: "badge-red" }
+        ];
+        let historyPetugas = [];
+        let activePetugasId = null;
+
+        function renderTablePetugas() {
+            let tbodyAntrean = document.getElementById('petugasAntreanBody');
+            let tbodyRiwayat = document.getElementById('petugasRiwayatBody');
+            
+            // Antrean
+            if(tugasPetugas.length === 0) {
+                tbodyAntrean.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--text-muted); font-size: 0.95rem; padding: 2rem;">Tidak ada antrean verifikasi saat ini.</td></tr>';
+            } else {
+                tbodyAntrean.innerHTML = '';
+                tugasPetugas.forEach(t => {
+                    let actionHtml = t.status.includes('Tgl:') || t.status.includes('Terjadwal') ? 
+                        `<button class="btn-action btn-action-alt" onclick="openModalVerifikasi(${t.id})"><i data-feather="check-square" style="width:14px;"></i> Proses Verifikasi</button>` :
+                        `<button class="btn-action" onclick="openModalJadwal(${t.id})"><i data-feather="calendar" style="width:14px;"></i> Atur Jadwal</button>`;
+
+                    tbodyAntrean.innerHTML += `
+                        <tr>
+                            <td><span class="badge ${t.asal === 'Warga'?'badge-green':'badge-red'}"><i data-feather="${t.icon}" style="width:12px;"></i> ${t.asal}</span></td>
+                            <td style="font-weight: 500;">${t.subjek}</td>
+                            <td style="font-size: 0.9rem; color: var(--text-muted);">${t.ket}</td>
+                            <td><span class="badge ${t.statusColor}">${t.status}</span></td>
+                            <td>${actionHtml}</td>
+                        </tr>
+                    `;
+                });
+            }
+
+            // Riwayat
+            if(historyPetugas.length === 0) {
+                tbodyRiwayat.innerHTML = '<tr><td colspan="4" style="text-align: center; color: var(--text-muted); font-size: 0.95rem; padding: 2rem;">Belum ada riwayat verifikasi selesai.</td></tr>';
+            } else {
+                tbodyRiwayat.innerHTML = '';
+                historyPetugas.forEach(t => {
+                    tbodyRiwayat.innerHTML += `
+                        <tr>
+                            <td><span class="badge ${t.asal === 'Warga'?'badge-green':'badge-red'}"><i data-feather="${t.icon}" style="width:12px;"></i> ${t.asal}</span></td>
+                            <td style="font-weight: 500;">${t.subjek}</td>
+                            <td style="font-size: 0.9rem; color: var(--text-muted);">${t.ket}</td>
+                            <td><span class="badge badge-green"><i data-feather="check" style="width:12px;"></i> Selesai Terverifikasi</span></td>
+                        </tr>
+                    `;
+                });
+            }
+            feather.replace();
+        }
+
+        function openModalJadwal(id) { activePetugasId = id; document.getElementById('modalJadwal').classList.add('active'); }
+        function openModalVerifikasi(id) { activePetugasId = id; document.getElementById('modalVerifikasi').classList.add('active'); }
+        function closeModal(modalId) { document.getElementById(modalId).classList.remove('active'); activePetugasId = null; }
+
+        function submitJadwal() {
+            let tgl = document.getElementById('inputJadwal').value;
+            if(!tgl) return showToast('Pilih tanggal kunjungan!', 'error');
+            
+            let d = new Date(tgl);
+            let tglStr = d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+            
+            let task = tugasPetugas.find(t => t.id === activePetugasId);
+            if(task) { task.status = "Tgl: " + tglStr; task.statusColor = "badge-blue"; }
+            
+            showToast('Jadwal berhasil diperbarui ke Terjadwal.', 'success');
+            closeModal('modalJadwal');
+            renderTablePetugas();
+        }
+
+        function submitVerifikasi() {
+            let idx = tugasPetugas.findIndex(t => t.id === activePetugasId);
+            if(idx > -1) {
+                let task = tugasPetugas[idx];
+                historyPetugas.push(task); 
+                tugasPetugas.splice(idx, 1); 
+            }
+            showToast('Laporan verifikasi selesai dan dipindahkan ke Riwayat.', 'success');
+            closeModal('modalVerifikasi');
+            renderTablePetugas();
+        }
+
+
+        // ================= LOGIKA PEMERINTAH =================
+        let stats = { sudah: 2550, belum: 12450 };
+
+        function changeQuota(amount) {
+            let input = document.getElementById('inputKuotaBansos');
+            let val = parseInt(input.value) + amount;
+            if(val < 0) val = 0;
+            input.value = val;
+        }
+
+        function distributeQuota() {
+            let kuota = parseInt(document.getElementById('inputKuotaBansos').value);
+            let tgl = document.getElementById('inputTglPenyaluran').value;
+
+            if(isNaN(kuota) || kuota <= 0) return showToast("Jumlah kuota harus lebih besar dari 0!", "error");
+            if(!tgl) return showToast("Pilih tanggal penyaluran terlebih dahulu!", "error");
+            if(kuota > stats.belum) return showToast(`Kuota melebihi sisa warga yang belum dapat (${stats.belum} Jiwa).`, "error");
+            
+            let dateObj = new Date(tgl);
+            let today = new Date();
+            today.setHours(0,0,0,0);
+            dateObj.setHours(0,0,0,0);
+
+            let dateStr = dateObj.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+            let isPastOrToday = dateObj <= today; 
+            
+            let iconStr = isPastOrToday ? 
+                `<div class="history-icon" style="background: #d1fae5; color: #059669;"><i data-feather="check" style="width: 18px; height: 18px;"></i></div>` : 
+                `<div class="history-icon" style="background: #fef3c7; color: #d97706;"><i data-feather="clock" style="width: 18px; height: 18px;"></i></div>`;
+            
+            let statusText = isPastOrToday ? `<strong style="color:#059669;">(Tersalurkan)</strong>` : `<strong style="color:#d97706;">(Proses Distribusi)</strong>`;
+
+            stats.sudah += kuota;
+            stats.belum -= kuota;
+            document.getElementById('statSudah').innerHTML = `${stats.sudah.toLocaleString('id-ID')} <span style="font-size:1rem; font-weight:400; color:var(--text-muted);">Jiwa</span>`;
+            document.getElementById('statBelum').innerHTML = `${stats.belum.toLocaleString('id-ID')} <span style="font-size:1rem; font-weight:400; color:var(--text-muted);">Jiwa</span>`;
+
+            let historyContainer = document.getElementById('historyDistribusi');
+            let newItem = document.createElement('div');
+            newItem.className = 'history-item';
+            newItem.innerHTML = `
+                ${iconStr}
+                <div>
+                    <span style="font-weight: 600; color: var(--primary);">Ditetapkan ${dateStr}</span><br>
+                    Kuota: ${kuota.toLocaleString('id-ID')} Jiwa ${statusText}
+                </div>
+            `;
+            historyContainer.insertBefore(newItem, historyContainer.firstChild);
+
+            showToast(`Sukses! ${kuota} kuota bansos berhasil dijadwalkan pada ${dateStr}.`, "success");
+            feather.replace();
+        }
+
+        const dataWargaPemerintah = [
+            { id: "357801001", nama: "Budi Santoso", kec: "Genteng", status: "Anomali AI: Aset Kendaraan Roda 4 Baru", risiko: "94% Kritis" },
+            { id: "357801002", nama: "Agus Pratama", kec: "Genteng", status: "Sanggahan: Rumah rusak berat", risiko: "Warning" },
+            { id: "357801003", nama: "Siti Aminah", kec: "Tegalsari", status: "Anomali AI: Rekening Listrik > 2200VA", risiko: "88% Tinggi" },
+            { id: "357801004", nama: "Rudi Hermawan", kec: "Gubeng", status: "Sanggahan: Kehilangan pekerjaan (PHK)", risiko: "Warning" },
+            { id: "357801005", nama: "Endang Sulastri", kec: "Genteng", status: "Data Normal Terverifikasi", risiko: "Rendah" },
+            { id: "357801006", nama: "Yanto Mulyadi", kec: "Tegalsari", status: "Anomali AI: Terdaftar BPJS Gaji UMR", risiko: "91% Kritis" },
+            { id: "357801007", nama: "Lina Marlina", kec: "Gubeng", status: "Sanggahan: Suami meninggal dunia", risiko: "Warning" },
+            { id: "357801008", nama: "Hasan Basri", kec: "Genteng", status: "Data Normal Terverifikasi", risiko: "Rendah" },
+            { id: "357801009", nama: "Dewi Lestari", kec: "Tegalsari", status: "Sanggahan: Anggota keluarga sakit kronis", risiko: "Warning" },
+            { id: "357801010", nama: "Eko Prasetyo", kec: "Gubeng", status: "Anomali AI: Mutasi rekening mencurigakan", risiko: "85% Tinggi" },
+            { id: "357801011", nama: "Sri Wahyuni", kec: "Genteng", status: "Data Normal Terverifikasi", risiko: "Rendah" },
+            { id: "357801012", nama: "Ahmad Fauzi", kec: "Tegalsari", status: "Anomali AI: Data Dukcapil ganda", risiko: "75% Sedang" },
+            { id: "357801013", nama: "Nia Ramadhani", kec: "Gubeng", status: "Data Normal Terverifikasi", risiko: "Rendah" },
+            { id: "357801014", nama: "Joko Susilo", kec: "Genteng", status: "Sanggahan: Belum terdata di DTKS", risiko: "Warning" },
+            { id: "357801015", nama: "Titin Sumarni", kec: "Tegalsari", status: "Anomali AI: Kepemilikan usaha NIB", risiko: "95% Kritis" },
+            { id: "357801016", nama: "Bambang P.", kec: "Gubeng", status: "Data Normal Terverifikasi", risiko: "Rendah" },
+            { id: "357801017", nama: "Rini Wulandari", kec: "Genteng", status: "Sanggahan: Rumah terbakar", risiko: "Warning" },
+            { id: "357801018", nama: "Arif Hidayat", kec: "Tegalsari", status: "Data Normal Terverifikasi", risiko: "Rendah" },
+            { id: "357801019", nama: "Diana Puspita", kec: "Gubeng", status: "Anomali AI: Domisili berbeda dengan pusat", risiko: "70% Sedang" },
+            { id: "357801020", nama: "Farid Rahman", kec: "Genteng", status: "Data Normal Terverifikasi", risiko: "Rendah" }
+        ];
+
+        function renderTablePemerintah() {
+            let filter = document.getElementById('filterKecamatan').value;
+            let tbody = document.getElementById('tablePemerintahBody');
+            tbody.innerHTML = '';
+            
+            dataWargaPemerintah.forEach(warga => {
+                if (filter === 'semua' || warga.kec === filter) {
+                    let badgeClass = warga.risiko.includes('Kritis') || warga.risiko.includes('Tinggi') ? 'badge-red' : (warga.risiko.includes('Warning') || warga.risiko.includes('Sedang') ? 'badge-yellow' : 'badge-green');
+                    let iconRisiko = warga.risiko === 'Rendah' ? 'check-circle' : 'alert-triangle';
+                    
+                    let actionBtn = warga.risiko === 'Rendah' ? 
+                        `<span style="color:var(--text-muted); font-size:0.85rem; display:inline-flex; align-items:center; gap:5px;"><i data-feather="check" style="width:14px;"></i> Aman</span>` : 
+                        `<button class="btn-action" onclick="this.innerHTML='<i data-feather=\\'check\\' style=\\'width:14px\\'></i> Terkirim'; this.style.background='#e2e8f0'; this.style.color='#64748b'; showToast('Instruksi terkirim ke petugas lapangan!'); feather.replace();"><i data-feather="bell" style="width:14px;"></i> Instruksikan</button>`;
+
+                    let tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td style="font-weight: 500;">${warga.nama}<br><span style="font-size:0.8rem; color:var(--text-muted);">${warga.id}</span></td>
+                        <td>${warga.kec}</td>
+                        <td style="color: var(--text-muted); font-size: 0.9rem;">${warga.status}</td>
+                        <td><span class="badge ${badgeClass}"><i data-feather="${iconRisiko}" style="width:12px;"></i> ${warga.risiko}</span></td>
+                        <td>${actionBtn}</td>
+                    `;
+                    tbody.appendChild(tr);
+                }
+            });
+            feather.replace(); 
+        }
+
+        // ================= Warga Randomizer =================
+        function generateRandomWargaStatus() {
+            const container = document.getElementById('wargaStatusArea');
+            const scenario = Math.floor(Math.random() * 3) + 1;
+            
+            let htmlContent = `<h3 style="color: var(--text-muted); font-size: 1rem; margin-bottom: 1rem; text-transform: uppercase;">Status Kelayakan Saat Ini</h3>`;
+            if (scenario === 1) {
+                htmlContent += `
+                    <div style="padding: 1.5rem; background: #f8fafc; border-radius: var(--radius-sm); border: 1px solid var(--border);">
+                        <h2 style="font-size: 1.8rem; color: var(--primary); margin-bottom: 0.8rem;">TERDAFTAR (Desil 3)</h2>
+                        <span class="badge badge-green" style="font-size: 1rem; padding: 0.6rem 1.2rem; margin-bottom: 1rem;"><i data-feather="check-circle" style="width: 16px;"></i> LAYAK MENERIMA BANTUAN</span>
+                    </div>
+                    <div style="background: var(--primary); color: white; padding: 1.5rem; border-radius: var(--radius-sm); margin-top: 1rem;">
+                        <p style="font-size: 0.85rem; opacity: 0.9;">Jadwal Pencairan Bansos Anda:</p>
+                        <h3 style="font-size: 1.2rem; margin-top: 5px;">Akan segera dialokasikan.</h3>
+                    </div>`;
+            } else if (scenario === 2) {
+                htmlContent += `
+                    <div style="padding: 1.5rem; background: #f8fafc; border-radius: var(--radius-sm); border: 1px solid var(--border);">
+                        <h2 style="font-size: 1.8rem; color: var(--primary); margin-bottom: 0.8rem;">TERDAFTAR (Desil 4)</h2>
+                        <span class="badge badge-green" style="font-size: 1rem; padding: 0.6rem 1.2rem; margin-bottom: 1rem;"><i data-feather="check-circle" style="width: 16px;"></i> LAYAK MENERIMA BANTUAN</span>
+                    </div>
+                    <div style="background: #fef3c7; color: #d97706; padding: 1.5rem; border: 1px solid #fde68a; border-radius: var(--radius-sm); margin-top: 1rem;">
+                        <p style="font-size: 0.85rem; font-weight:500;">Status Alokasi Gelombang Saat Ini:</p>
+                        <h3 style="font-size: 1rem; margin-top: 5px;">Belum mendapat giliran kuota penyaluran pada sesi ini.</h3>
+                    </div>`;
+            } else {
+                htmlContent += `
+                    <div style="padding: 1.5rem; background: #fee2e2; border-radius: var(--radius-sm); border: 1px solid #fecaca;">
+                        <h2 style="font-size: 1.8rem; color: #dc2626; margin-bottom: 0.8rem;">TIDAK TERDAFTAR</h2>
+                        <span class="badge badge-red" style="font-size: 1rem; padding: 0.6rem 1.2rem; margin-bottom: 1rem;"><i data-feather="x-circle" style="width: 16px;"></i> TIDAK MEMENUHI KRITERIA / TIDAK LAYAK</span>
+                        <p style="font-size:0.85rem; color:#991b1b; margin-top:10px;">Jika merasa terdapat kesalahan data, silakan gunakan form sanggahan di samping.</p>
+                    </div>`;
+            }
+            container.innerHTML = htmlContent;
+            feather.replace();
+        }
+
+        window.onload = function() { renderTablePemerintah(); renderTablePetugas(); }
+    </script>
+</body>
+</html>
