@@ -29,7 +29,7 @@
         body { 
             color: var(--text-main); line-height: 1.6; 
             background: linear-gradient(135deg, #e0e7ff 0%, #f8fafc 50%, #dbeafe 100%);
-            background-attachment: fixed; min-height: 100vh; overflow-x: hidden;
+            background-attachment: fixed; min-height: 100vh; overflow-x: hidden; width: 100%;
         }
 
         /* Navbar & Menu */
@@ -37,7 +37,17 @@
             background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(12px); padding: 1rem 5%;
             display: flex; justify-content: space-between; align-items: center; position: sticky;
             top: 0; z-index: 100; border-bottom: 1px solid rgba(255,255,255,0.4); box-shadow: var(--shadow-sm);
+            flex-wrap: wrap; 
         }
+        
+        .nav-left-cluster { display: flex; align-items: center; gap: 15px; }
+        
+        .mobile-menu-btn {
+            display: none; background: transparent; border: none; color: var(--primary); 
+            cursor: pointer; padding: 5px; border-radius: 6px; transition: 0.2s;
+        }
+        .mobile-menu-btn:hover { background: #f1f5f9; }
+
         .nav-brand { display: flex; align-items: center; gap: 12px; cursor: pointer; }
         .nav-brand img { height: 40px; width: auto; object-fit: contain; }
         .nav-brand h1 { color: var(--primary); font-weight: 700; font-size: 1.5rem; letter-spacing: -0.5px; }
@@ -55,6 +65,7 @@
             display: inline-flex; align-items: center; gap: 6px;
         }
         .nav-buttons button:active, .btn-submit:active, .btn-action:active { transform: scale(0.95); }
+        .nav-buttons button:hover { background: #eff6ff; }
         .nav-buttons .btn-primary { background: var(--primary); color: white; border: none; box-shadow: var(--shadow-sm); }
         .nav-buttons .btn-primary:hover { background: var(--primary-light); }
 
@@ -131,26 +142,26 @@
         }
         .auth-tab.active { background: white; color: var(--primary); box-shadow: var(--shadow-sm); }
 
-        .form-group { margin-bottom: 1.2rem; text-align: left; }
+        .form-group { margin-bottom: 1.2rem; text-align: left; width: 100%; }
         .form-group label { display: flex; align-items: center; gap: 6px; margin-bottom: 0.4rem; font-weight: 500; font-size: 0.9rem; color: var(--text-main); }
         .form-group input:not([type="checkbox"]), .form-group select {
             width: 100%; height: 45px; padding: 0 1rem; border: 1px solid var(--border); border-radius: var(--radius-sm); 
-            font-size: 0.95rem; outline: none; transition: 0.3s; background: #fafafa;
+            font-size: 0.95rem; outline: none; transition: 0.3s; background: #fafafa; box-sizing: border-box;
         }
         .form-group textarea {
             width: 100%; padding: 1rem; border: 1px solid var(--border); border-radius: var(--radius-sm); 
-            font-size: 0.95rem; outline: none; transition: 0.3s; background: #fafafa; resize: none; 
+            font-size: 0.95rem; outline: none; transition: 0.3s; background: #fafafa; resize: none; box-sizing: border-box;
         }
         .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: var(--primary-light); background: white; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15); }
         
         .btn-submit { 
             background: var(--primary); color: white; border: none; padding: 0 1rem; height: 48px; width: 100%; 
             border-radius: var(--radius-sm); font-weight: 600; font-size: 1rem; cursor: pointer; transition: 0.2s; 
-            box-shadow: var(--shadow-sm); display: flex; align-items: center; justify-content: center; gap: 8px;
+            box-shadow: var(--shadow-sm); display: flex; align-items: center; justify-content: center; gap: 8px; box-sizing: border-box;
         }
         .btn-submit:hover { background: var(--primary-light); }
 
-        /* UI Kuota Stepper Baru (Bisa Ketik) */
+        /* UI Kuota Stepper */
         .quota-stepper { 
             display: inline-flex; align-items: center; border: 1px solid var(--border); 
             border-radius: var(--radius-sm); overflow: hidden; height: 45px; background: white; width: 100%; max-width: 160px;
@@ -163,7 +174,7 @@
         .quota-stepper input { 
             border: none; border-left: 1px solid var(--border); border-right: 1px solid var(--border); 
             text-align: center; font-size: 1.1rem; font-weight: 600; color: var(--primary); 
-            height: 100%; width: 100%; outline: none; -moz-appearance: textfield;
+            height: 100%; width: 100%; outline: none; -moz-appearance: textfield; box-sizing: border-box;
         }
         .quota-stepper input::-webkit-outer-spin-button, .quota-stepper input::-webkit-inner-spin-button { 
             -webkit-appearance: none; margin: 0; 
@@ -174,7 +185,7 @@
         .dash-header h2 { font-size: 1.8rem; color: var(--primary); line-height: 1.2; display: flex; align-items: center; gap: 10px; margin-bottom: 5px; }
         .dash-header p { color: var(--text-muted); }
         
-        .table-container { max-height: 350px; overflow-y: auto; overflow-x: auto; border: 1px solid var(--border); border-radius: var(--radius-sm); background: white;}
+        .table-container { max-height: 350px; overflow-y: auto; overflow-x: auto; border: 1px solid var(--border); border-radius: var(--radius-sm); background: white; width: 100%;}
         table { width: 100%; border-collapse: collapse; min-width: 700px; }
         th, td { padding: 1rem; text-align: left; border-bottom: 1px solid var(--border); vertical-align: middle; }
         th { background: #f8fafc; font-weight: 600; color: var(--text-muted); text-transform: uppercase; font-size: 0.8rem; position: sticky; top: 0; z-index: 10; box-shadow: 0 1px 0 var(--border);}
@@ -199,7 +210,7 @@
         .btn-action-alt { background: var(--accent); color: white; }
         .btn-action-alt:hover { background: #d97706; }
 
-        /* Riwayat Penyaluran (Pemerintah) - FIX Lingkaran Sempurna */
+        /* Riwayat Penyaluran (Pemerintah) */
         .history-list { margin-top: 15px; display: flex; flex-direction: column; gap: 10px; }
         .history-item { 
             background: #f8fafc; border: 1px solid var(--border); padding: 12px 15px; 
@@ -207,7 +218,7 @@
         }
         .history-icon {
             width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; 
-            border-radius: 50%; flex-shrink: 0; /* Mencegah ikon menjadi lonjong/gepeng */
+            border-radius: 50%; flex-shrink: 0; 
         }
 
         /* Modal (Pop-up) */
@@ -218,38 +229,88 @@
         .modal-overlay.active { display: flex !important; animation: fadeIn 0.3s ease; }
         .modal-content {
             background: white; padding: 2.5rem; border-radius: var(--radius); width: 90%; max-width: 500px;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); position: relative; border-top: 6px solid var(--primary);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); position: relative; border-top: 6px solid var(--primary); box-sizing: border-box;
         }
         .modal-close { position: absolute; top: 1rem; right: 1.5rem; cursor: pointer; color: var(--text-muted); border: none; background: transparent; transition: 0.2s; }
         .modal-close:hover { color: #dc2626; }
         
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-        /* === MOBILE RESPONSIVE TWEAKS === */
+        /* === 📱 OPTIMALISASI MOBILE RESPONSIVE (TIDAK MERUBAH DESKTOP) === */
         @media (max-width: 768px) {
-            nav { flex-direction: column; gap: 15px; padding: 1rem; }
-            .nav-brand { justify-content: center; width: 100%; }
-            .nav-right-cluster { flex-direction: column; width: 100%; gap: 15px; }
-            .nav-menu { margin: 0; justify-content: center; width: 100%; }
-            .nav-buttons { width: 100%; justify-content: center; }
+            /* Navbar Mobile */
+            nav { padding: 1rem 5%; align-items: flex-start; }
+            .mobile-menu-btn { display: block; }
             
-            .grid-2, .grid-3 { grid-template-columns: 1fr; }
+            .nav-right-cluster { 
+                display: none; width: 100%; flex-direction: column; gap: 10px; 
+                padding-top: 1rem; border-top: 1px solid var(--border); margin-top: 10px;
+                animation: fadeIn 0.3s ease;
+            }
+            .nav-right-cluster.show { display: flex; }
             
-            .seamless-hero { padding-top: 3rem; padding-bottom: 6rem; }
-            .seamless-hero h2 { font-size: 2.2rem; }
-            .carousel-wrapper { margin-top: -4rem; padding: 0 2%; }
-            .carousel-slide { min-width: 100%; }
-            .carousel-slide img { height: 180px; }
+            .nav-menu { flex-direction: column; width: 100%; align-items: flex-start; gap: 0;}
+            .nav-menu a { width: 100%; padding: 12px 0; border-bottom: 1px solid #f1f5f9; display: block; font-size: 0.9rem;}
+            .nav-buttons { width: 100%; justify-content: flex-start; }
+            .nav-buttons button { width: 100%; justify-content: center; height: 40px; font-size: 0.9rem;}
+
+            /* Layout & Spacing Mobile */
+            .grid-2, .grid-3 { grid-template-columns: 1fr; gap: 1rem; }
+            .page { padding: 1rem 5%; }
+            .card { padding: 1.2rem; margin-bottom: 1rem; }
+            
+            /* Typography Mobile */
+            .seamless-hero { padding-top: 3rem; padding-bottom: 5rem; }
+            .seamless-hero h2 { font-size: 1.8rem; }
+            .seamless-hero p { font-size: 0.9rem; padding: 0 10px; }
+            .seamless-about { padding: 3rem 5%; }
+            .seamless-about h3 { font-size: 1.5rem; }
+            .seamless-about p { font-size: 0.9rem; }
+            
+            .dash-header h2 { font-size: 1.4rem; }
+            .dash-header p { font-size: 0.85rem; }
+            h3 { font-size: 1.1rem; }
+            p { font-size: 0.85rem; }
+
+            /* Carousel Mobile */
+            .carousel-wrapper { margin-top: -3.5rem; padding: 0 2%; }
+            .carousel-slide { min-width: 100%; padding: 0 5px;}
+            .carousel-slide img { height: 160px; border-width: 3px; }
             .carousel-btn { width: 35px; height: 35px; }
             
-            .card { padding: 1.5rem; }
-            .page { padding: 1.5rem 5%; }
+            /* Forms, Input & Stepper Mobile */
+            .form-group label { font-size: 0.85rem; }
+            .form-group input:not([type="checkbox"]), .form-group select { height: 40px; font-size: 0.85rem; }
+            .form-group textarea { font-size: 0.85rem; }
+            .btn-submit, .btn-action { height: 40px; font-size: 0.85rem; }
             
-            .btn-action { width: 100%; justify-content: center; margin-top: 5px; }
-            .quota-stepper { max-width: 100%; }
+            .quota-stepper { max-width: 100%; height: 40px; justify-content: space-between;}
+            .quota-stepper button { font-size: 1.2rem; padding: 0 15px; }
+            .quota-stepper input { font-size: 0.9rem; width: 100%;}
             
-            .history-item { flex-direction: row; align-items: flex-start; }
-            .dash-header h2 { font-size: 1.5rem; }
+            /* Table Mobile */
+            .table-container { width: 100%; overflow-x: auto; }
+            table { min-width: 600px; }
+            th, td { padding: 0.75rem 0.5rem; font-size: 0.8rem; }
+            .badge { font-size: 0.7rem; padding: 0.3rem 0.6rem; }
+            
+            /* History Box Mobile */
+            .history-item { flex-direction: column; align-items: flex-start; padding: 10px; gap: 8px;}
+            .history-icon { width: 30px; height: 30px; }
+
+            /* Modal Mobile */
+            .modal-content { padding: 1.5rem; width: 95%; }
+            .modal-content h3 { font-size: 1.1rem; }
+            
+            /* Toast Center Top Fix Mobile */
+            .toast-container { width: 90%; left: 5%; transform: none; top: 15px; }
+            .toast { padding: 12px 15px; font-size: 0.8rem; border-radius: 15px; flex-direction: column; text-align: center;}
+        }
+
+        /* Desktop View Configuration */
+        @media (min-width: 769px) {
+            .mobile-menu-btn { display: none; }
+            .nav-right-cluster { display: flex !important; }
         }
     </style>
 </head>
@@ -260,24 +321,30 @@
 
     <!-- NAVBAR -->
     <nav>
-        <div class="nav-brand" onclick="scrollToBeranda()">
-            <img src="asset/pemerintah.png" alt="Logo" onerror="this.style.display='none'">
-            <h1>SIGAP <span>DTSEN</span></h1>
+        <div class="nav-left-cluster">
+            <!-- Hamburger Menu (Mobile) -->
+            <button class="mobile-menu-btn" onclick="toggleMobileMenu()">
+                <i data-feather="menu"></i>
+            </button>
+            <div class="nav-brand" onclick="scrollToBeranda()">
+                <img src="asset/pemerintah.png" alt="Logo" onerror="this.style.display='none'">
+                <h1>SIGAP <span>DTSEN</span></h1>
+            </div>
         </div>
         
-        <div class="nav-right-cluster">
+        <div class="nav-right-cluster" id="mobileMenu">
             <div class="nav-menu" id="navLinks">
-                <a onclick="scrollToBeranda()">Beranda</a>
-                <a onclick="scrollToTentang()">Tentang</a>
+                <a onclick="scrollToBeranda(); closeMobileMenu();">Beranda</a>
+                <a onclick="scrollToTentang(); closeMobileMenu();">Tentang</a>
             </div>
             
-            <!-- Tombol Disatukan -->
+            <!-- Tombol Masuk / Daftar -->
             <div class="nav-buttons" id="navAuth">
-                <button class="btn-primary" onclick="navigate('login')"><i data-feather="user" style="width: 16px;"></i> Masuk / Daftar</button>
+                <button class="btn-primary" onclick="navigate('login'); closeMobileMenu();"><i data-feather="user" style="width: 16px;"></i> Masuk / Daftar</button>
             </div>
             
             <div class="nav-buttons" id="navLogout" style="display: none;">
-                <button class="btn-primary" onclick="logout()"><i data-feather="log-out" style="width: 16px;"></i> Keluar</button>
+                <button class="btn-primary" onclick="logout(); closeMobileMenu();"><i data-feather="log-out" style="width: 16px;"></i> Keluar</button>
             </div>
         </div>
     </nav>
@@ -321,7 +388,7 @@
                 <i data-feather="info" style="color: var(--accent); width: 28px; height: 28px;"></i>
             </div>
             <h3>Tentang SIGAP DTSEN</h3>
-            <p>SIGAP DTSEN merupakan inovasi sistem digital yang dirancang sebagai penyempurna Data Tunggal Sosial Ekonomi Nasional (DTSEN)[cite: 1]. Platform ini menghubungkan pemerintah, petugas pendamping lapangan, serta masyarakat secara langsung dalam satu ekosistem data yang terpadu[cite: 1]. Melalui deteksi anomali AI dan validasi lapangan, SIGAP bertujuan secara radikal menekan angka salah sasaran dan menjamin setiap hak bantuan negara benar-benar tersalurkan kepada warga yang membutuhkan[cite: 1].</p>
+            <p>SIGAP DTSEN merupakan inovasi sistem digital yang dirancang sebagai penyempurna Data Tunggal Sosial Ekonomi Nasional (DTSEN). Platform ini menghubungkan pemerintah, petugas pendamping lapangan, serta masyarakat secara langsung dalam satu ekosistem data yang terpadu. Melalui deteksi anomali AI dan validasi lapangan, SIGAP bertujuan secara radikal menekan angka salah sasaran dan menjamin setiap hak bantuan negara benar-benar tersalurkan kepada warga yang membutuhkan.</p>
         </div>
     </div>
 
@@ -432,7 +499,6 @@
             <div class="grid-2" style="align-items: end;">
                 <div class="form-group" style="margin: 0;">
                     <label>Tentukan Kuota Penyaluran (Jiwa)</label>
-                    <!-- Dimulai dari Nol -->
                     <div class="quota-stepper">
                         <button onclick="changeQuota(-50)">-</button>
                         <input type="number" id="inputKuotaBansos" value="0" min="0">
@@ -595,7 +661,7 @@
     <script>
         feather.replace();
 
-        // Custom Toast Center Top
+        // Custom Toast 
         function showToast(message, type = 'success') {
             const container = document.getElementById('toast-container');
             const toast = document.createElement('div');
@@ -608,6 +674,20 @@
                 toast.classList.add('hide');
                 setTimeout(() => toast.remove(), 300);
             }, 3000);
+        }
+
+        // Toggle Mobile Menu
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobileMenu');
+            if(window.innerWidth <= 768) {
+                menu.classList.toggle('show');
+            }
+        }
+        function closeMobileMenu() {
+            const menu = document.getElementById('mobileMenu');
+            if(window.innerWidth <= 768) {
+                menu.classList.remove('show');
+            }
         }
 
         // Carousel Seamless Responsive
@@ -626,7 +706,6 @@
             document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
             document.getElementById(pageId).classList.add('active');
             
-            // Hindari loncat kasar jika hanya pindah menu, gunakan smooth scroll jika beralih
             if(pageId !== 'home') window.scrollTo(0,0);
             if(pageId === 'dash-pemerintah') renderTablePemerintah();
             if(pageId === 'dash-petugas') renderTablePetugas();
@@ -731,7 +810,6 @@
             let tbodyAntrean = document.getElementById('petugasAntreanBody');
             let tbodyRiwayat = document.getElementById('petugasRiwayatBody');
             
-            // Antrean
             if(tugasPetugas.length === 0) {
                 tbodyAntrean.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--text-muted); font-size: 0.95rem; padding: 2rem;">Tidak ada antrean verifikasi saat ini.</td></tr>';
             } else {
@@ -753,7 +831,6 @@
                 });
             }
 
-            // Riwayat
             if(historyPetugas.length === 0) {
                 tbodyRiwayat.innerHTML = '<tr><td colspan="4" style="text-align: center; color: var(--text-muted); font-size: 0.95rem; padding: 2rem;">Belum ada riwayat verifikasi selesai.</td></tr>';
             } else {
@@ -802,7 +879,6 @@
             closeModal('modalVerifikasi');
             renderTablePetugas();
         }
-
 
         // ================= LOGIKA PEMERINTAH =================
         let stats = { sudah: 2550, belum: 12450 };
