@@ -617,16 +617,16 @@
 
         // 1. KONFIGURASI FIREBASE & HYBRID LOCALSTORAGE
         const firebaseConfig = {
-            apiKey: "YOUR_API_KEY",
-            authDomain: "YOUR_AUTH_DOMAIN",
-            databaseURL: "YOUR_DATABASE_URL",
-            projectId: "YOUR_PROJECT_ID",
-            storageBucket: "YOUR_STORAGE_BUCKET",
-            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-            appId: "YOUR_APP_ID"
+            apiKey: "AIzaSyC0gPK0RYXdtwuJNgJyb5TYyCUN5sSGetA",
+            authDomain: "sigap-dtsen.firebaseapp.com",
+            databaseURL: "https://sigap-dtsen-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "sigap-dtsen",
+            storageBucket: "sigap-dtsen.firebasestorage.app",
+            messagingSenderId: "255208159527",
+            appId: "1:255208159527:web:6614724ea7dee59b299102"
         };
 
-        const useFirebase = firebaseConfig.apiKey !== "YOUR_API_KEY";
+        const useFirebase = firebaseConfig.apiKey && !firebaseConfig.apiKey.includes("YOUR");
         let fdb = null;
         if(useFirebase) {
             firebase.initializeApp(firebaseConfig);
