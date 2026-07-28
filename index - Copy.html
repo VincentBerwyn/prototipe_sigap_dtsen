@@ -1,0 +1,1190 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SIGAP DTSEN - Portal Bansos Interaktif</title>
+    <!-- Font Poppins -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Feather Icons -->
+    <script src="https://unpkg.com/feather-icons"></script>
+    
+    <!-- FIREBASE SDK (V8 Compat) -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+    <style>
+        /* === GLOBAL STYLES === */
+        :root {
+            --primary: #1e3a8a; --primary-light: #3b82f6; --accent: #f59e0b;
+            --bg-card: rgba(255, 255, 255, 0.95); --text-main: #1e293b; --text-muted: #64748b;
+            --border: #cbd5e1; --radius: 16px; --radius-sm: 8px;
+            --shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.05); --shadow-lg: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+
+        body { 
+            color: var(--text-main); line-height: 1.6; 
+            background: linear-gradient(135deg, #e0e7ff 0%, #f8fafc 50%, #dbeafe 100%);
+            background-attachment: fixed; min-height: 100vh; overflow-x: hidden; width: 100%;
+            display: flex; flex-direction: column;
+        }
+
+        /* Navbar & Menu */
+        nav {
+            background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(12px); padding: 1rem 5%;
+            display: flex; justify-content: space-between; align-items: center; position: sticky;
+            top: 0; z-index: 100; border-bottom: 1px solid rgba(255,255,255,0.4); box-shadow: var(--shadow-sm);
+            flex-wrap: wrap; 
+        }
+        .nav-left-cluster { display: flex; align-items: center; gap: 15px; }
+        .mobile-menu-btn { display: none; background: transparent; border: none; color: var(--primary); cursor: pointer; padding: 5px; border-radius: 6px; transition: 0.2s; }
+        .nav-brand { display: flex; align-items: center; gap: 12px; cursor: pointer; }
+        .nav-brand img { height: 40px; width: auto; object-fit: contain; }
+        .nav-brand h1 { color: var(--primary); font-weight: 700; font-size: 1.5rem; letter-spacing: -0.5px; }
+        .nav-brand h1 span { color: var(--accent); }
+        
+        .nav-right-cluster { display: flex; align-items: center; gap: 20px;}
+        .nav-menu { display: flex; align-items: center; gap: 20px; font-weight: 500; }
+        .nav-menu a { cursor: pointer; color: var(--text-main); transition: 0.2s; text-decoration: none; }
+        .nav-menu a:hover { color: var(--primary-light); }
+
+        .nav-buttons { display: flex; align-items: center; gap: 10px; }
+        .nav-buttons button { background: transparent; color: var(--primary); border: 1px solid var(--primary); padding: 0.5rem 1rem; border-radius: var(--radius-sm); cursor: pointer; font-weight: 500; transition: all 0.2s ease; display: inline-flex; align-items: center; gap: 6px; }
+        .nav-buttons button:active, .btn-submit:active, .btn-action:active { transform: scale(0.95); }
+        .nav-buttons button:hover { background: #eff6ff; }
+        .nav-buttons .btn-primary { background: var(--primary); color: white; border: none; box-shadow: var(--shadow-sm); }
+        .nav-buttons .btn-primary:hover { background: var(--primary-light); }
+
+        /* Setup Halaman */
+        main { flex: 1; }
+        .page { display: none; padding: 2rem 5%; max-width: 1280px; margin: 0 auto; animation: fadeUp 0.5s ease; width: 100%; }
+        .page.active { display: block; }
+        #home.page { padding: 0; max-width: 100%; }
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Homepage Seamless */
+        .seamless-section { padding: 4rem 5%; display: flex; flex-direction: column; align-items: center; text-align: center; }
+        .seamless-hero { background: linear-gradient(135deg, var(--primary) 0%, #2563eb 100%); color: white; position: relative; overflow: hidden; padding-top: 5rem; padding-bottom: 5rem;}
+        .seamless-hero h2 { font-size: 3rem; font-weight: 700; margin-bottom: 1rem; line-height: 1.2; max-width: 900px; margin-inline: auto; }
+        .seamless-hero p { font-size: 1.1rem; opacity: 0.9; max-width: 750px; margin: 0 auto 2rem; font-weight: 300; }
+        .seamless-about { background: transparent; padding: 5rem 5%; color: var(--text-main); }
+        .seamless-about h3 { font-size: 2rem; color: var(--primary); margin-bottom: 1.5rem; display: flex; align-items: center; justify-content: center; gap: 8px;}
+        .seamless-about p { font-size: 1.05rem; color: var(--text-muted); max-width: 900px; margin: 0 auto; line-height: 1.8; }
+
+        /* Card & Layouts */
+        .card { background: var(--bg-card); padding: 2rem; border-radius: var(--radius); box-shadow: var(--shadow-sm); border: 1px solid rgba(255,255,255,0.8); margin-bottom: 1.5rem; position: relative; overflow: hidden; backdrop-filter: blur(5px); }
+        .card h3 { display: flex; align-items: center; gap: 8px; margin-bottom: 1.5rem; font-size: 1.2rem; }
+        .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 1.5rem; }
+        .grid-warga { display: grid; grid-template-columns: 1fr 1.5fr; gap: 1.5rem; align-items: start; }
+        .grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; }
+        .sticky-col { position: sticky; top: 100px; height: max-content; }
+
+        /* Carousel */
+        .carousel-wrapper { position: relative; width: 100%; padding: 0 5%; margin: -3rem 0 3rem 0; z-index: 10; }
+        .carousel-container { overflow: hidden; border-radius: var(--radius); }
+        .carousel-track { display: flex; transition: transform 0.6s cubic-bezier(0.25, 1, 0.5, 1); }
+        .carousel-slide { min-width: 25%; padding: 0 10px; box-sizing: border-box; }
+        .carousel-slide img { width: 100%; height: 220px; object-fit: cover; border-radius: var(--radius); box-shadow: 0 10px 20px rgba(0,0,0,0.15); border: 5px solid white; background-color: #cbd5e1; }
+        .carousel-btn { position: absolute; top: 50%; transform: translateY(-50%); background: white; border: none; border-radius: 50%; width: 45px; height: 45px; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: var(--shadow-lg); color: var(--primary); transition: 0.2s; z-index: 20; }
+        .carousel-btn:hover { background: var(--primary); color: white; }
+        .carousel-btn.prev { left: 2%; } .carousel-btn.next { right: 2%; }
+        
+        /* Toast Notification */
+        .toast-container { position: fixed; top: 30px; left: 50%; transform: translateX(-50%); z-index: 99999; display: flex; flex-direction: column; gap: 10px; align-items: center; pointer-events: none; width: 90%; max-width: 400px; }
+        .toast { background: #10b981; color: white; padding: 15px 25px; border-radius: 30px; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.3); position: relative; overflow: hidden; animation: slideDown 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); font-size: 0.95rem; display: flex; align-items: center; gap: 10px; font-weight: 500; pointer-events: auto; width: 100%; }
+        .toast.error { background: #ef4444; }
+        .toast.hide { animation: fadeOutTop 0.3s ease-out forwards; }
+        .toast-progress { position: absolute; bottom: 0; left: 0; height: 4px; background: rgba(255,255,255,0.8); width: 100%; animation: progress 3s linear forwards; }
+        @keyframes slideDown { from { transform: translateY(-100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        @keyframes fadeOutTop { from { transform: translateY(0); opacity: 1; } to { transform: translateY(-100%); opacity: 0; } }
+        @keyframes progress { from { width: 100%; } to { width: 0%; } }
+
+        /* Forms & Inputs */
+        .auth-tabs { display: flex; background: #f1f5f9; border-radius: var(--radius-sm); padding: 5px; margin-bottom: 2rem; }
+        .auth-tab { flex: 1; text-align: center; padding: 0.8rem; cursor: pointer; border-radius: 6px; font-weight: 500; color: var(--text-muted); transition: all 0.2s ease; border: none; background: transparent; font-size: 0.95rem; }
+        .auth-tab.active { background: white; color: var(--primary); box-shadow: var(--shadow-sm); }
+
+        .form-group { margin-bottom: 1.2rem; text-align: left; width: 100%; }
+        .form-group label { display: flex; align-items: center; gap: 6px; margin-bottom: 0.4rem; font-weight: 500; font-size: 0.9rem; color: var(--text-main); }
+        .form-group input:not([type="checkbox"]), .form-group select { width: 100%; height: 45px; padding: 0 1rem; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 0.95rem; outline: none; transition: 0.3s; background: #fafafa; box-sizing: border-box; }
+        .form-group textarea { width: 100%; padding: 1rem; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 0.95rem; outline: none; transition: 0.3s; background: #fafafa; resize: none; box-sizing: border-box; }
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: var(--primary-light); background: white; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15); }
+        
+        .btn-submit { background: var(--primary); color: white; border: none; padding: 0 1rem; height: 48px; width: 100%; border-radius: var(--radius-sm); font-weight: 600; font-size: 1rem; cursor: pointer; transition: 0.2s; box-shadow: var(--shadow-sm); display: flex; align-items: center; justify-content: center; gap: 8px; box-sizing: border-box; }
+        .btn-submit:hover { background: var(--primary-light); }
+
+        .quota-stepper { display: inline-flex; align-items: center; border: 1px solid var(--border); border-radius: var(--radius-sm); overflow: hidden; height: 45px; background: white; width: 100%; max-width: 160px; }
+        .quota-stepper button { background: #f1f5f9; border: none; padding: 0 15px; font-size: 1.2rem; cursor: pointer; color: var(--primary); transition: 0.2s; height: 100%; font-weight: bold; flex-shrink: 0; }
+        .quota-stepper input { border: none; border-left: 1px solid var(--border); border-right: 1px solid var(--border); text-align: center; font-size: 1.1rem; font-weight: 600; color: var(--primary); height: 100%; width: 100%; outline: none; -moz-appearance: textfield; box-sizing: border-box; }
+        .quota-stepper input::-webkit-outer-spin-button, .quota-stepper input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+
+        /* Dashboard Tables */
+        .dash-header { margin-bottom: 2rem; border-left: 5px solid var(--primary); padding-left: 15px;}
+        .dash-header h2 { font-size: 1.8rem; color: var(--primary); line-height: 1.2; display: flex; align-items: center; gap: 10px; margin-bottom: 5px; }
+        
+        .table-container { max-height: 350px; overflow-y: auto; overflow-x: auto; border: 1px solid var(--border); border-radius: var(--radius-sm); background: white; width: 100%;}
+        table { width: 100%; border-collapse: collapse; min-width: 700px; }
+        th, td { padding: 1rem; text-align: left; border-bottom: 1px solid var(--border); vertical-align: middle; font-size: 0.9rem;}
+        th { background: #f8fafc; font-weight: 600; color: var(--text-muted); text-transform: uppercase; font-size: 0.8rem; position: sticky; top: 0; z-index: 10; box-shadow: 0 1px 0 var(--border);}
+        tr:hover td { background: #f1f5f9; }
+        
+        .badge { padding: 0.4rem 0.8rem; border-radius: 30px; font-size: 0.75rem; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; gap: 5px; white-space: nowrap; }
+        .badge-red { background: #fee2e2; color: #dc2626; border: 1px solid #fecaca; }
+        .badge-green { background: #d1fae5; color: #059669; border: 1px solid #a7f3d0; }
+        .badge-yellow { background: #fef3c7; color: #d97706; border: 1px solid #fde68a; }
+        .badge-gray { background: #f1f5f9; color: #64748b; border: 1px solid #cbd5e1; }
+        .badge-blue { background: #dbeafe; color: #1e3a8a; border: 1px solid #bfdbfe; }
+        
+        .btn-action { background: var(--primary-light); color: white; border: none; height: 35px; padding: 0 1rem; border-radius: var(--radius-sm); cursor: pointer; font-size: 0.85rem; font-weight: 500; transition: 0.2s; white-space: nowrap; display: inline-flex; align-items: center; gap: 5px; }
+        .btn-action:hover { background: var(--primary); }
+        .btn-action-alt { background: var(--accent); color: white; }
+        .btn-action-alt:hover { background: #d97706; }
+
+        /* History & Profile */
+        .history-list { display: flex; flex-direction: column; gap: 10px; }
+        .history-item { background: #f8fafc; border: 1px solid var(--border); padding: 12px 15px; border-radius: var(--radius-sm); display: flex; align-items: flex-start; gap: 15px; font-size: 0.95rem; }
+        .history-icon { width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; border-radius: 50%; flex-shrink: 0; }
+        
+        .profile-grid { display: grid; grid-template-columns: 1fr 2fr; gap: 10px; text-align: left; background: #f8fafc; padding: 1.5rem; border-radius: var(--radius-sm); border: 1px solid var(--border); margin-bottom: 1.5rem;}
+        .profile-label { color: var(--text-muted); font-size: 0.85rem; font-weight: 600; text-transform: uppercase;}
+        .profile-value { font-weight: 500; color: var(--primary); font-size: 0.95rem;}
+
+        .scrollable-box { max-height: 280px; overflow-y: auto; padding-right: 5px; }
+        .scrollable-box::-webkit-scrollbar { width: 6px; }
+        .scrollable-box::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 10px; }
+        .scrollable-box::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        .scrollable-box::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        /* Modal */
+        .modal-overlay { display: none !important; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); z-index: 9999; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
+        .modal-overlay.active { display: flex !important; animation: fadeIn 0.3s ease; }
+        .modal-content { background: white; padding: 2.5rem; border-radius: var(--radius); width: 90%; max-width: 500px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); position: relative; border-top: 6px solid var(--primary); box-sizing: border-box; }
+        .modal-content h3 { display: flex; align-items: center; gap: 8px; margin-bottom: 1rem; color: var(--primary); }
+        .modal-close { position: absolute; top: 1rem; right: 1.5rem; cursor: pointer; color: var(--text-muted); border: none; background: transparent; transition: 0.2s; }
+        .modal-close:hover { color: #dc2626; }
+        
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        /* Footer */
+        footer { margin-top: auto; text-align: center; padding: 2rem 5%; border-top: 1px solid var(--border); background: var(--bg-card); backdrop-filter: blur(5px); color: var(--text-muted); font-size: 0.9rem;}
+
+        /* === MOBILE RESPONSIVE TWEAKS === */
+        @media (max-width: 768px) {
+            nav { padding: 1rem 5%; align-items: flex-start; }
+            .mobile-menu-btn { display: block; }
+            .nav-right-cluster { display: none; width: 100%; flex-direction: column; gap: 10px; padding-top: 1rem; border-top: 1px solid var(--border); margin-top: 10px; animation: fadeIn 0.3s ease; }
+            .nav-right-cluster.show { display: flex; }
+            .nav-menu { flex-direction: column; width: 100%; align-items: flex-start; gap: 0;}
+            .nav-menu a { width: 100%; padding: 12px 0; border-bottom: 1px solid #f1f5f9; display: block; font-size: 0.9rem;}
+            .nav-buttons { width: 100%; justify-content: flex-start; }
+            .nav-buttons button { width: 100%; justify-content: center; height: 40px; font-size: 0.9rem;}
+
+            .grid-2, .grid-3, .grid-warga { grid-template-columns: 1fr; gap: 1rem; }
+            .page { padding: 1rem 5%; }
+            .card { padding: 1.2rem; margin-bottom: 1rem; }
+            .sticky-col { position: relative; top: 0; height: auto; } /* Disable sticky di Mobile */
+            
+            .seamless-hero { padding-top: 3rem; padding-bottom: 5rem; }
+            .seamless-hero h2 { font-size: 1.8rem; }
+            .seamless-hero p { font-size: 0.9rem; padding: 0 10px; }
+            .seamless-about { padding: 3rem 5%; }
+            .seamless-about h3 { font-size: 1.5rem; }
+            .seamless-about p { font-size: 0.9rem; }
+            
+            .dash-header h2 { font-size: 1.4rem; }
+            .dash-header p { font-size: 0.85rem; }
+            h3 { font-size: 1.1rem; }
+            p { font-size: 0.85rem; }
+
+            .carousel-wrapper { margin-top: -3.5rem; padding: 0 2%; }
+            .carousel-slide { min-width: 100%; padding: 0 5px;}
+            .carousel-slide img { height: 160px; border-width: 3px; }
+            .carousel-btn { width: 35px; height: 35px; }
+            
+            .form-group label { font-size: 0.85rem; }
+            .form-group input:not([type="checkbox"]), .form-group select { height: 40px; font-size: 0.85rem; }
+            .form-group textarea { font-size: 0.85rem; }
+            .btn-submit, .btn-action { height: 40px; font-size: 0.85rem; }
+            
+            .quota-stepper { max-width: 100%; height: 40px; justify-content: space-between;}
+            .quota-stepper button { font-size: 1.2rem; padding: 0 15px; }
+            .quota-stepper input { font-size: 0.9rem; width: 100%;}
+            
+            .table-container { width: 100%; overflow-x: auto; }
+            table { min-width: 600px; }
+            th, td { padding: 0.75rem 0.5rem; font-size: 0.8rem; }
+            .badge { font-size: 0.7rem; padding: 0.3rem 0.6rem; }
+            
+            .history-item { flex-direction: row; align-items: flex-start; padding: 10px; gap: 8px;}
+            .history-icon { width: 30px; height: 30px; }
+
+            .profile-grid { grid-template-columns: 1fr; gap: 5px; }
+            .profile-value { margin-bottom: 10px; }
+
+            .modal-content { padding: 1.5rem; width: 95%; }
+            .toast-container { width: 90%; left: 5%; transform: none; top: 15px; }
+        }
+        @media (min-width: 769px) { .mobile-menu-btn { display: none; } .nav-right-cluster { display: flex !important; } }
+    </style>
+</head>
+<body>
+
+    <div id="toast-container" class="toast-container"></div>
+
+    <nav>
+        <div class="nav-left-cluster">
+            <button class="mobile-menu-btn" onclick="toggleMobileMenu()"><i data-feather="menu"></i></button>
+            <div class="nav-brand" onclick="scrollToBeranda()">
+                <img src="asset/pemerintah.png" alt="Logo" onerror="this.style.display='none'">
+                <h1>SIGAP <span>DTSEN</span></h1>
+            </div>
+        </div>
+        <div class="nav-right-cluster" id="mobileMenu">
+            <div class="nav-menu" id="navLinks">
+                <a onclick="scrollToBeranda(); closeMobileMenu();">Beranda</a>
+                <a onclick="scrollToTentang(); closeMobileMenu();">Tentang</a>
+            </div>
+            <div class="nav-buttons" id="navAuth">
+                <button class="btn-primary" onclick="navigate('login'); closeMobileMenu();"><i data-feather="user" style="width: 16px;"></i> Masuk / Daftar</button>
+            </div>
+            <div class="nav-buttons" id="navLogout" style="display: none;">
+                <button class="btn-primary" onclick="logout(); closeMobileMenu();"><i data-feather="log-out" style="width: 16px;"></i> Keluar</button>
+            </div>
+        </div>
+    </nav>
+
+    <main>
+        <!-- 1. HALAMAN BERANDA -->
+        <div id="home" class="page active">
+            <div class="seamless-section seamless-hero">
+                <div style="display: inline-flex; align-items: center; background: rgba(255,255,255,0.2); padding: 0.4rem 1.2rem; border-radius: 30px; font-size: 0.9rem; margin-bottom: 1.5rem; backdrop-filter: blur(5px); gap: 6px;">
+                    <i data-feather="check-circle" style="width: 14px;"></i> Layanan Terpadu Verifikasi Sosial
+                </div>
+                <h2>Kawal Hak Anda, Pastikan Bansos Tepat Sasaran</h2>
+                <p>Sistem ini memberikan Anda kendali untuk memeriksa dan memverifikasi kelayakan data bansos keluarga secara mandiri dengan transparansi penuh.</p>
+                <button class="btn-primary" style="padding: 0 2rem; height: 50px; font-size: 1.1rem; border-radius: 30px; background: var(--accent); color:#fff;" onclick="navigate('login')">
+                    <i data-feather="search" style="width: 18px;"></i> Cek Status Saya Sekarang
+                </button>
+            </div>
+
+            <div class="carousel-wrapper">
+                <button class="carousel-btn prev" onclick="moveSlide(-1)"><i data-feather="chevron-left"></i></button>
+                <div class="carousel-container">
+                    <div class="carousel-track" id="carouselTrack">
+                        <!-- Assets 1 - 10 -->
+                        <div class="carousel-slide"><img src="asset/1.png" alt="Galeri"></div>
+                        <div class="carousel-slide"><img src="asset/2.png" alt="Galeri"></div>
+                        <div class="carousel-slide"><img src="asset/3.png" alt="Galeri"></div>
+                        <div class="carousel-slide"><img src="asset/4.png" alt="Galeri"></div>
+                        <div class="carousel-slide"><img src="asset/5.png" alt="Galeri"></div>
+                        <div class="carousel-slide"><img src="asset/6.png" alt="Galeri"></div>
+                        <div class="carousel-slide"><img src="asset/7.png" alt="Galeri"></div>
+                        <div class="carousel-slide"><img src="asset/8.png" alt="Galeri"></div>
+                        <div class="carousel-slide"><img src="asset/9.png" alt="Galeri"></div>
+                        <div class="carousel-slide"><img src="asset/10.png" alt="Galeri"></div>
+                    </div>
+                </div>
+                <button class="carousel-btn next" onclick="moveSlide(1)"><i data-feather="chevron-right"></i></button>
+            </div>
+
+            <div id="tentangSection" class="seamless-section seamless-about">
+                <div style="background: #fef3c7; width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 1rem;">
+                    <i data-feather="info" style="color: var(--accent); width: 28px; height: 28px;"></i>
+                </div>
+                <h3>Tentang SIGAP DTSEN</h3>
+                <p>SIGAP DTSEN merupakan inovasi sistem digital penyempurna Data Tunggal Sosial Ekonomi Nasional (DTSEN)[cite: 1]. Platform ini menghubungkan pemerintah, petugas pendamping lapangan, serta masyarakat secara langsung dalam satu ekosistem data yang terpadu[cite: 1]. Melalui deteksi anomali AI dan validasi lapangan, SIGAP bertujuan secara radikal menekan angka salah sasaran dan menjamin setiap hak bantuan negara benar-benar tersalurkan kepada warga yang membutuhkan[cite: 1].</p>
+            </div>
+        </div>
+
+        <!-- 2. LOGIN -->
+        <div id="login" class="page">
+            <div class="card" style="max-width: 450px; margin: 0 auto; text-align: center;">
+                <div style="background: #eff6ff; width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem;">
+                    <i data-feather="lock" style="color: var(--primary);"></i>
+                </div>
+                <h2 style="margin-bottom: 1.5rem; color: var(--primary);">Autentikasi Pengguna</h2>
+                
+                <div class="auth-tabs">
+                    <button class="auth-tab active" id="tabLoginWarga" onclick="switchLogin('warga')">Portal Warga</button>
+                    <button class="auth-tab" id="tabLoginAparatur" onclick="switchLogin('aparatur')">Portal Aparatur</button>
+                </div>
+
+                <!-- Login Warga -->
+                <div id="formLoginWarga">
+                    <div class="form-group">
+                        <label><i data-feather="credit-card" style="width:16px;"></i> NIK (Wajib 16 Digit Angka)</label>
+                        <input type="text" id="loginNik" placeholder="Masukkan 16 digit NIK" maxlength="16">
+                    </div>
+                    <div class="form-group">
+                        <label><i data-feather="key" style="width:16px;"></i> Kata Sandi</label>
+                        <input type="password" id="loginPassWarga" placeholder="Masukkan kata sandi">
+                    </div>
+                    <button class="btn-submit" onclick="processLogin('warga')">Masuk sebagai Warga <i data-feather="arrow-right" style="width: 18px;"></i></button>
+                </div>
+
+                <!-- Login Aparatur -->
+                <div id="formLoginAparatur" style="display: none;">
+                    <div class="form-group">
+                        <label><i data-feather="shield" style="width:16px;"></i> Kewenangan</label>
+                        <select id="loginRoleAparatur">
+                            <option value="pemerintah">Pemerintah Pusat / Dinsos</option>
+                            <option value="petugas">Petugas Pendamping Desa</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label><i data-feather="user" style="width:16px;"></i> Username</label>
+                        <input type="text" id="loginIdAparatur" placeholder="Masukkan username">
+                    </div>
+                    <div class="form-group">
+                        <label><i data-feather="key" style="width:16px;"></i> Kata Sandi</label>
+                        <input type="password" id="loginPassAparatur" placeholder="Masukkan kata sandi">
+                    </div>
+                    <button class="btn-submit" onclick="processLogin('aparatur')">Masuk Sistem <i data-feather="arrow-right" style="width: 18px;"></i></button>
+                </div>
+                <p style="margin-top: 1.5rem; font-size: 0.9rem;">Belum memiliki akun? <a onclick="navigate('register')" style="color: var(--primary-light); font-weight: 600; cursor: pointer;">Daftar Disini</a></p>
+            </div>
+        </div>
+
+        <!-- 3. REGISTRASI -->
+        <div id="register" class="page">
+            <div class="card" style="max-width: 500px; margin: 0 auto;">
+                <div style="background: #eff6ff; width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem;">
+                    <i data-feather="user-plus" style="color: var(--primary);"></i>
+                </div>
+                <h2 style="text-align: center; margin-bottom: 1.5rem; color: var(--primary);">Registrasi Baru</h2>
+                <div class="auth-tabs">
+                    <button class="auth-tab active" id="tabRegWarga" onclick="switchReg('warga')">Daftar Warga</button>
+                    <button class="auth-tab" id="tabRegPetugas" onclick="switchReg('petugas')">Daftar Petugas</button>
+                </div>
+
+                <!-- Reg Warga -->
+                <div id="formRegWarga">
+                    <div class="form-group"><label>NIK Lengkap (16 Digit Angka)</label><input type="text" id="regNikWarga" placeholder="Masukkan 16 Digit NIK" maxlength="16"></div>
+                    <div class="form-group"><label>Nama Sesuai KTP</label><input type="text" id="regNamaWarga" placeholder="Masukkan Nama Lengkap"></div>
+                    <div class="form-group"><label>Nomor WhatsApp (Aktif)</label><input type="text" id="regWaWarga" placeholder="Contoh: 08123456789"></div>
+                    <div class="form-group"><label>Buat Kata Sandi</label><input type="password" id="regPassWarga" placeholder="Minimal 8 karakter"></div>
+                </div>
+                <!-- Reg Petugas -->
+                <div id="formRegPetugas" style="display: none;">
+                    <div class="form-group"><label>Username (Hanya Huruf)</label><input type="text" id="regUserPetugas" placeholder="Masukkan Username"></div>
+                    <div class="form-group"><label>Nama Lengkap</label><input type="text" id="regNamaPetugas" placeholder="Nama Lengkap"></div>
+                    <div class="form-group"><label>Wilayah Penugasan</label><input type="text" id="regWilayahPetugas" placeholder="Contoh: Kecamatan Genteng"></div>
+                    <div class="form-group"><label>Nomor WhatsApp (Aktif)</label><input type="text" id="regWaPetugas" placeholder="Contoh: 08123456789"></div>
+                    <div class="form-group"><label>Buat Kata Sandi</label><input type="password" id="regPassPetugas" placeholder="Minimal 8 karakter"></div>
+                </div>
+                <button class="btn-submit" onclick="submitRegistration()" style="margin-top: 1rem;">Ajukan Verifikasi Akun <i data-feather="check-circle" style="width: 18px;"></i></button>
+            </div>
+        </div>
+
+        <!-- 4. DASHBOARD WARGA -->
+        <div id="dash-warga" class="page">
+            <div class="dash-header">
+                <h2><i data-feather="home"></i> Portal Layanan Mandiri</h2>
+                <p>Verifikasi silang identitas Anda dan pantau jadwal alokasi bansos terbaru.</p>
+            </div>
+
+            <div class="grid-warga">
+                <!-- KIRI -->
+                <div class="sticky-col" style="display: flex; flex-direction: column; gap: 1.5rem;">
+                    <div class="card" style="margin-bottom: 0; border-top: 4px solid var(--primary);">
+                        <h3><i data-feather="user" style="color: var(--primary);"></i> Identitas Warga (KRT)</h3>
+                        <div class="profile-grid" id="profilWargaContent">
+                            <!-- Dimuat via JS -->
+                        </div>
+                    </div>
+
+                    <div class="card" style="margin-bottom: 0;">
+                        <h3><i data-feather="activity" style="color: var(--primary);"></i> Status Penyaluran</h3>
+                        <div id="statusWargaContent" style="padding: 1.5rem; background: #f8fafc; border: 1px solid var(--border); border-radius: var(--radius-sm); text-align: center;">
+                            <!-- Dimuat via JS -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- KANAN -->
+                <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+                    <div class="card" style="margin-bottom: 0;">
+                        <h3><i data-feather="edit-3" style="color: var(--accent);"></i> Ajukan Sanggahan</h3>
+                        <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 1.5rem;">Laporkan jika kondisi ekonomi memburuk atau terjadi ketidaksesuaian data.</p>
+                        
+                        <div class="form-group">
+                            <label>Pilih Alasan Sanggahan</label>
+                            <select id="kategoriSanggahan" onchange="document.getElementById('boxLainnya').style.display = (this.value === 'lainnya') ? 'block' : 'none';">
+                                <option value="Kehilangan pekerjaan / sumber penghasilan utama">Kehilangan pekerjaan / sumber penghasilan utama</option>
+                                <option value="Rumah mengalami kerusakan berat / terdampak bencana">Rumah mengalami kerusakan berat / terdampak bencana</option>
+                                <option value="Tulang punggung keluarga meninggal dunia">Tulang punggung keluarga meninggal dunia</option>
+                                <option value="Anggota keluarga menderita sakit kritis/kronis">Anggota keluarga menderita sakit kritis/kronis</option>
+                                <option value="Belum terdata meski kondisi ekonomi di bawah rata-rata">Belum terdata meski kondisi ekonomi di bawah rata-rata</option>
+                                <option value="lainnya">Lainnya (Sebutkan secara spesifik)</option>
+                            </select>
+                        </div>
+                        <div class="form-group" id="boxLainnya" style="display: none; animation: fadeUp 0.3s ease;">
+                            <label>Deskripsi Spesifik</label>
+                            <textarea id="teksLainnya" rows="3" placeholder="Ketikkan secara detail..."></textarea>
+                        </div>
+                        <button class="btn-submit" onclick="submitSanggahan()">
+                            <i data-feather="send" style="width: 18px;"></i> Kirim Laporan Sanggahan
+                        </button>
+                    </div>
+
+                    <div class="card" style="margin-bottom: 0; flex-grow: 1;">
+                        <h3><i data-feather="clock" style="color: var(--primary);"></i> Riwayat Penerimaan</h3>
+                        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">Pantau jika ada pihak yang menyalahgunakan nama Anda untuk pencairan.</p>
+                        <div class="history-list scrollable-box" id="riwayatBansosWarga">
+                            <!-- Dimuat via JS -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 5. DASHBOARD PEMERINTAH -->
+        <div id="dash-pemerintah" class="page">
+            <div class="dash-header">
+                <h2><i data-feather="monitor"></i> Pusat Kendali Pemerintah</h2>
+                <p>Kelola data, atur distribusi bansos, dan persetujuan pengguna sistem.</p>
+            </div>
+
+            <div class="auth-tabs" style="max-width: 600px; margin-bottom: 1.5rem;">
+                <button class="auth-tab active" id="tabPemDistribusi" onclick="switchPemTab('distribusi')">Distribusi & Penjadwalan</button>
+                <button class="auth-tab" id="tabPemApproval" onclick="switchPemTab('approval')">ACC Registrasi Baru</button>
+            </div>
+
+            <!-- TAB DISTRIBUSI & PENJADWALAN -->
+            <div id="pemDistribusiArea">
+                <div class="card" style="border-top: 4px solid var(--accent);">
+                    <h3><i data-feather="send" style="color: var(--accent);"></i> Penjadwalan Pencairan</h3>
+                    <div class="grid-2" style="align-items: end;">
+                        <div class="form-group" style="margin: 0;">
+                            <label>Tentukan Kuota Penyaluran (Jiwa)</label>
+                            <div class="quota-stepper">
+                                <button onclick="changeQuota(-1)">-</button>
+                                <input type="number" id="inputKuotaBansos" value="0" min="0">
+                                <button onclick="changeQuota(1)">+</button>
+                            </div>
+                        </div>
+                        <div class="form-group" style="margin: 0;">
+                            <label>Pilih Tanggal Penyaluran</label>
+                            <div style="display: flex; gap: 10px;">
+                                <input type="date" id="inputTglPenyaluran" style="flex: 1;">
+                                <button class="btn-action btn-action-alt" style="height: 45px; padding: 0 1.5rem;" onclick="distributeQuota()">Salurkan</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="margin-top: 2rem; border-top: 1px dashed var(--border); padding-top: 1.5rem;">
+                        <h4 style="font-size: 1rem; color: var(--text-main); margin-bottom: 10px;">Riwayat Sinkronisasi Penyaluran</h4>
+                        <div class="history-list scrollable-box" id="historyDistribusi" style="max-height: 200px;">
+                            <!-- Diisi via JS -->
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap;">
+                        <h3><i data-feather="users" style="color:var(--primary);"></i> Data Target Warga</h3>
+                        <div style="font-size:0.9rem;">Total Database: <strong id="totalDBWarga">0</strong></div>
+                    </div>
+                    <div class="table-container">
+                        <table>
+                            <thead><tr><th>No. KK / Nama</th><th>Kecamatan / Alamat</th><th>Status (Realtime)</th><th>Risiko</th><th>Tindakan Lanjutan</th></tr></thead>
+                            <tbody id="tablePemerintahBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Laporan Petugas -->
+                <div class="card">
+                    <h3><i data-feather="file-text" style="color: var(--primary);"></i> Laporan Terbaru dari Petugas</h3>
+                    <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 1rem;">Pantau hasil verifikasi lapangan secara riil oleh petugas pendamping desa.</p>
+                    <div class="table-container">
+                        <table>
+                            <thead><tr><th>Tanggal Aksi</th><th>Subjek Warga</th><th>Status Awal</th><th>Hasil Evaluasi</th><th>Deskripsi</th></tr></thead>
+                            <tbody id="laporanPetugasPemerintahBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB ACC REGISTRASI BARU -->
+            <div id="pemApprovalArea" style="display: none;">
+                <div class="card" style="border-top: 4px solid #10b981;">
+                    <h3><i data-feather="user-plus" style="color:#10b981;"></i> Daftar Registrasi Menunggu Persetujuan</h3>
+                    <div class="table-container">
+                        <table>
+                            <thead><tr><th>Tanggal Daftar</th><th>Nama Pendaftar</th><th>Tipe Akses</th><th>Aksi</th></tr></thead>
+                            <tbody id="tableApprovalBody">
+                                <tr><td colspan="4" style="text-align: center; color: var(--text-muted);">Tidak ada pendaftar baru.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 6. DASHBOARD PETUGAS DESA -->
+        <div id="dash-petugas" class="page">
+            <div class="dash-header">
+                <h2><i data-feather="clipboard"></i> Panel Kerja Petugas</h2>
+                <p style="font-weight: 500; color: var(--primary); display:flex; align-items:center; gap:6px;"><i data-feather="map-pin" style="width: 16px;"></i> Wilayah: Genteng, Surabaya</p>
+            </div>
+
+            <div class="card">
+                <h3><i data-feather="list" style="color: var(--primary);"></i> Antrean Verifikasi (Anomali/Sanggahan)</h3>
+                <div class="table-container">
+                    <table>
+                        <thead><tr><th>Asal Laporan</th><th>Subjek Warga</th><th>Keterangan Tugas</th><th>Status</th><th>Aksi</th></tr></thead>
+                        <tbody id="petugasAntreanBody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="card" style="border-top: 4px solid #10b981;">
+                <h3><i data-feather="check-circle" style="color: #059669;"></i> Riwayat Verifikasi Selesai</h3>
+                <div class="table-container">
+                    <table>
+                        <thead><tr><th>Tanggal Aksi</th><th>Subjek Warga</th><th>Keterangan Awal</th><th>Status Akhir</th></tr></thead>
+                        <tbody id="petugasRiwayatBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- FOOTER TELKOM -->
+    <footer style="text-align: center; padding: 2rem 5%; border-top: 1px solid var(--border); background: var(--bg-card); backdrop-filter: blur(5px); color: var(--text-muted); margin-top: auto;">
+        <img src="asset/telkom.png" alt="Logo Telkom" style="height: 50px; width: auto; margin-bottom: 10px; object-fit: contain;" onerror="this.style.display='none'">
+        <p style="font-weight: 500; font-size: 0.95rem; letter-spacing: 0.5px;">Telkom University Surabaya</p>
+    </footer>
+
+    <!-- MODAL JADWAL (PETUGAS) -->
+    <div class="modal-overlay" id="modalJadwal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeModal('modalJadwal')"><i data-feather="x"></i></button>
+            <h3><i data-feather="calendar"></i> Jadwal Verifikasi</h3>
+            <div class="form-group"><label>Pilih Tanggal</label><input type="date" id="inputSetJadwal"></div>
+            <button class="btn-submit" onclick="simpanJadwalPetugas()"><i data-feather="save" style="width: 18px;"></i> Simpan Jadwal</button>
+        </div>
+    </div>
+
+    <!-- MODAL VERIFIKASI (PETUGAS) -->
+    <div class="modal-overlay" id="modalVerifikasi">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeModal('modalVerifikasi')"><i data-feather="x"></i></button>
+            <h3><i data-feather="file-text"></i> Formulir Verifikasi</h3>
+            
+            <div class="form-group"><label>Tanggal Aksi</label><input type="date" id="inputTglAksi"></div>
+            <div class="form-group"><label>Unggah Foto Bukti Faktual</label><input type="file" accept="image/*" style="padding: 10px; background: #f8fafc; height: auto;"></div>
+            <div class="form-group">
+                <label>Status Evaluasi</label>
+                <select id="inputKesimpulan"><option value="Layak">Layak</option><option value="Tidak Layak">Tidak Layak</option></select>
+            </div>
+            <div class="form-group"><label>Deskripsi</label><textarea id="inputDeskripsi" rows="3" placeholder="Deskripsikan kondisi lapangan..."></textarea></div>
+            
+            <button class="btn-submit" onclick="selesaikanVerifikasi()" style="background: var(--accent);"><i data-feather="upload-cloud" style="width: 18px;"></i> Selesai & Kirim</button>
+        </div>
+    </div>
+
+    <!-- MODAL DOKUMEN REGISTRASI (PEMERINTAH) -->
+    <div class="modal-overlay" id="modalDokumen">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeModal('modalDokumen')"><i data-feather="x"></i></button>
+            <h3><i data-feather="user"></i> Tinjau Dokumen Pendaftar</h3>
+            <div id="dokumenDetail" style="margin-bottom: 1.5rem; background: #f8fafc; padding: 1rem; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 0.9rem;">
+                <!-- Diisi via JS -->
+            </div>
+            
+            <div id="tolakArea" style="display:none; margin-bottom: 1rem; animation: fadeIn 0.3s ease;">
+                <div class="form-group">
+                    <label>Alasan Penolakan</label>
+                    <textarea id="alasanTolakText" rows="3" placeholder="Tuliskan alasan..."></textarea>
+                </div>
+                <button class="btn-submit" style="background:#ef4444;" onclick="prosesTolakRegistrasi()">Konfirmasi Tolak</button>
+            </div>
+
+            <div id="btnAreaRev" style="display:flex; gap: 10px;">
+                <button class="btn-submit" style="flex:1; background:#10b981;" onclick="accRegistrasi()"><i data-feather="check" style="width: 18px;"></i> Terima (ACC)</button>
+                <button class="btn-submit" style="flex:1; background:#ef4444;" onclick="showTolakArea()"><i data-feather="x" style="width: 18px;"></i> Tolak</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- === JAVASCRIPT === -->
+    <script>
+        feather.replace();
+
+        // 1. KONFIGURASI FIREBASE & HYBRID LOCALSTORAGE
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_AUTH_DOMAIN",
+            databaseURL: "YOUR_DATABASE_URL",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_STORAGE_BUCKET",
+            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
+
+        const useFirebase = firebaseConfig.apiKey !== "YOUR_API_KEY";
+        let fdb = null;
+        if(useFirebase) {
+            firebase.initializeApp(firebaseConfig);
+            fdb = firebase.database();
+            console.log("Firebase Aktif!");
+        } else {
+            console.warn("Firebase belum dikonfigurasi. Mode LocalStorage (Offline).");
+        }
+
+        const DB = {
+            get: async function(path) {
+                if(useFirebase) { let snap = await fdb.ref(path).once('value'); return snap.val(); } 
+                else { return JSON.parse(localStorage.getItem('sigap_' + path)); }
+            },
+            set: async function(path, data) {
+                if(useFirebase) { await fdb.ref(path).set(data); } 
+                else { localStorage.setItem('sigap_' + path, JSON.stringify(data)); }
+            }
+        };
+
+        const initialWarga = [
+            { nik: "3578010000000001", nama: "Budi Santoso", noKk: "3578011111110001", desil: 3, alamat: "Jl. Yos Sudarso No. 12, Genteng", kec: "Genteng", status: "Anomali AI: Kendaraan Baru", risiko: "Kritis", riwayat: [] },
+            { nik: "3578010000000002", nama: "Agus Pratama", noKk: "3578011111110002", desil: 2, alamat: "Kawasan Pasar Blauran, Genteng", kec: "Genteng", status: "Sanggahan: Rumah rusak berat", risiko: "Warning", riwayat: [] },
+            { nik: "3578010000000003", nama: "Siti Aminah", noKk: "3578011111110003", desil: 1, alamat: "Jl. Undaan Wetan, Genteng", kec: "Genteng", status: "Normal", risiko: "Aman", riwayat: [] },
+            { nik: "3578010000000004", nama: "Rudi Hermawan", noKk: "3578011111110004", desil: 4, alamat: "Jl. Peneleh Gang 2, Genteng", kec: "Genteng", status: "Normal", risiko: "Aman", riwayat: [] },
+            { nik: "3578010000000005", nama: "Endang Sulastri", noKk: "3578011111110005", desil: 3, alamat: "Ketabang Kali, Genteng", kec: "Genteng", status: "Normal", risiko: "Aman", riwayat: [] },
+            { nik: "3578010000000006", nama: "Yanto Mulyadi", noKk: "3578011111110006", desil: 6, alamat: "Jl. Walikota Mustajab, Tegalsari", kec: "Tegalsari", status: "Anomali AI: Gaji UMR", risiko: "Kritis", riwayat: [] },
+            { nik: "3578010000000007", nama: "Lina Marlina", noKk: "3578011111110007", desil: 2, alamat: "Jl. Ambengan, Gubeng", kec: "Gubeng", status: "Sanggahan: Suami meninggal dunia", risiko: "Warning", riwayat: [] },
+            { nik: "3578010000000008", nama: "Hasan Basri", noKk: "3578011111110008", desil: 3, alamat: "Embong Malang, Genteng", kec: "Genteng", status: "Normal", risiko: "Aman", riwayat: [] },
+            { nik: "3578010000000009", nama: "Dewi Lestari", noKk: "3578011111110009", desil: 4, alamat: "Kawasan Pasar Genteng Baru, Tegalsari", kec: "Tegalsari", status: "Normal", risiko: "Aman", riwayat: [] },
+            { nik: "3578010000000010", nama: "Eko Prasetyo", noKk: "3578011111110010", desil: 2, alamat: "Peneleh VII, Gubeng", kec: "Gubeng", status: "Anomali AI: Mutasi rekening mencurigakan", risiko: "Tinggi", riwayat: [] },
+            { nik: "3578010000000011", nama: "Sri Wahyuni", noKk: "3578011111110011", desil: 1, alamat: "Jl. Ngemplak, Genteng", kec: "Genteng", status: "Normal", risiko: "Aman", riwayat: [] },
+            { nik: "3578010000000012", nama: "Ahmad Fauzi", noKk: "3578011111110012", desil: 5, alamat: "Jl. Pemuda Lama, Tegalsari", kec: "Tegalsari", status: "Anomali AI: Data Dukcapil ganda", risiko: "Sedang", riwayat: [] },
+            { nik: "3578010000000013", nama: "Nia Ramadhani", noKk: "3578011111110013", desil: 3, alamat: "Kawasan Undaan Wetan, Gubeng", kec: "Gubeng", status: "Normal", risiko: "Aman", riwayat: [] },
+            { nik: "3578010000000014", nama: "Joko Susilo", noKk: "3578011111110014", desil: 4, alamat: "Jl. Kalianyar, Genteng", kec: "Genteng", status: "Normal", risiko: "Aman", riwayat: [] },
+            { nik: "3578010000000015", nama: "Titin Sumarni", noKk: "3578011111110015", desil: 2, alamat: "Ketabang Magersari, Tegalsari", kec: "Tegalsari", status: "Anomali AI: Kepemilikan usaha NIB", risiko: "Kritis", riwayat: [] },
+            { nik: "3578010000000016", nama: "Bambang P.", noKk: "3578011111110016", desil: 3, alamat: "Kawasan Blauran Kidul, Gubeng", kec: "Gubeng", status: "Normal", risiko: "Aman", riwayat: [] },
+            { nik: "3578010000000017", nama: "Rini Wulandari", noKk: "3578011111110017", desil: 2, alamat: "Jl. Kusuma Bangsa, Genteng", kec: "Genteng", status: "Sanggahan: Rumah terbakar", risiko: "Warning", riwayat: [] },
+            { nik: "3578010000000018", nama: "Arif Hidayat", noKk: "3578011111110018", desil: 1, alamat: "Jl. Makam Peneleh, Tegalsari", kec: "Tegalsari", status: "Normal", risiko: "Aman", riwayat: [] },
+            { nik: "3578010000000019", nama: "Diana Puspita", noKk: "3578011111110019", desil: 4, alamat: "Jl. Jimerto, Gubeng", kec: "Gubeng", status: "Normal", risiko: "Aman", riwayat: [] },
+            { nik: "3578010000000020", nama: "Farid Rahman", noKk: "3578011111110020", desil: 3, alamat: "Kawasan THR Indah, Genteng", kec: "Genteng", status: "Normal", risiko: "Aman", riwayat: [] }
+        ];
+
+        let globalJadwal = "Belum Ada Jadwal";
+        let activeTaskNik = null;
+        let loggedInUser = null; 
+        let activeApprovalId = null;
+
+        async function initApp() {
+            let data = await DB.get('warga');
+            if(!data) {
+                await DB.set('warga', initialWarga);
+                await DB.set('historyVerifikasi', []);
+                await DB.set('historyDistribusi', []);
+                await DB.set('pendingReg', []);
+                console.log("DB & 20 Data Warga Berhasil diinisialisasi.");
+            }
+            let jadwal = await DB.get('jadwalBansos');
+            if(jadwal) globalJadwal = jadwal;
+        }
+
+        // Custom Toast 
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = 'toast ' + (type === 'error' ? 'error' : '');
+            let icon = type === 'error' ? 'alert-circle' : 'info';
+            toast.innerHTML = `<i data-feather="${icon}" style="width:18px;"></i> <span>${message}</span> <div class="toast-progress"></div>`;
+            container.appendChild(toast);
+            feather.replace(); 
+            setTimeout(() => { toast.classList.add('hide'); setTimeout(() => toast.remove(), 300); }, 3000);
+        }
+
+        // Mobile Menu
+        function toggleMobileMenu() { const m = document.getElementById('mobileMenu'); if(window.innerWidth<=768) m.classList.toggle('show'); }
+        function closeMobileMenu() { const m = document.getElementById('mobileMenu'); if(window.innerWidth<=768) m.classList.remove('show'); }
+
+        // Carousel 
+        let currentSlide = 0; const maxSlide = 6; 
+        function moveSlide(direction) {
+            currentSlide += direction; if (currentSlide > maxSlide) currentSlide = 0; if (currentSlide < 0) currentSlide = maxSlide;
+            document.getElementById('carouselTrack').style.transform = `translateX(-${currentSlide * (window.innerWidth <= 768 ? 100 : 25)}%)`;
+        }
+        setInterval(() => { moveSlide(1); }, 3000);
+
+        // Routing 
+        function navigate(pageId) {
+            document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
+            document.getElementById(pageId).classList.add('active');
+            if(pageId !== 'home') window.scrollTo(0,0);
+            if(pageId === 'dash-pemerintah') renderDashPemerintah();
+            if(pageId === 'dash-petugas') renderDashPetugas();
+            if(pageId === 'dash-warga') renderDashWarga();
+        }
+
+        function scrollToBeranda() { let hp = document.getElementById('home'); if(!hp.classList.contains('active')) navigate('home'); window.scrollTo({ top: 0, behavior: 'smooth' }); }
+        function scrollToTentang() { let hp = document.getElementById('home'); if(!hp.classList.contains('active')) navigate('home'); setTimeout(() => { document.getElementById('tentangSection').scrollIntoView({ behavior: 'smooth' }); }, 50); }
+
+        function switchLogin(type) {
+            document.getElementById('tabLoginWarga').classList.remove('active'); document.getElementById('tabLoginAparatur').classList.remove('active');
+            document.getElementById('formLoginWarga').style.display = 'none'; document.getElementById('formLoginAparatur').style.display = 'none';
+            if (type === 'warga') { document.getElementById('tabLoginWarga').classList.add('active'); document.getElementById('formLoginWarga').style.display = 'block'; } 
+            else { document.getElementById('tabLoginAparatur').classList.add('active'); document.getElementById('formLoginAparatur').style.display = 'block'; }
+        }
+
+        function switchReg(type) {
+            document.getElementById('tabRegWarga').classList.remove('active'); document.getElementById('tabRegPetugas').classList.remove('active');
+            document.getElementById('formRegWarga').style.display = 'none'; document.getElementById('formRegPetugas').style.display = 'none';
+            if (type === 'warga') { document.getElementById('tabRegWarga').classList.add('active'); document.getElementById('formRegWarga').style.display = 'block'; } 
+            else { document.getElementById('tabRegPetugas').classList.add('active'); document.getElementById('formRegPetugas').style.display = 'block'; }
+        }
+
+        // ================= PENDAFTARAN & LOGIN =================
+        async function submitRegistration() {
+            let isWarga = document.getElementById('tabRegWarga').classList.contains('active');
+            let data = {
+                id: "REG_" + Date.now(),
+                tipe: isWarga ? 'Warga' : 'Petugas',
+                nik: isWarga ? document.getElementById('regNikWarga').value : null,
+                username: !isWarga ? document.getElementById('regUserPetugas').value : null,
+                nama: isWarga ? document.getElementById('regNamaWarga').value : document.getElementById('regNamaPetugas').value,
+                wa: isWarga ? document.getElementById('regWaWarga').value : document.getElementById('regWaPetugas').value,
+                tanggal: new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })
+            };
+            let pending = await DB.get('pendingReg') || [];
+            pending.push(data);
+            await DB.set('pendingReg', pending);
+
+            showToast("Pendaftaran berhasil! Kabar verifikasi/ACC akan dikirimkan melalui WhatsApp Anda.", "success");
+            document.querySelectorAll('input').forEach(i => i.value = ''); 
+            setTimeout(() => { navigate('login'); }, 2500);
+        }
+
+        async function processLogin(type) {
+            let role = '';
+            if (type === 'warga') {
+                const nik = document.getElementById('loginNik').value;
+                const pass = document.getElementById('loginPassWarga').value;
+                if(!nik || !pass) return showToast('Lengkapi NIK dan Kata Sandi!', 'error');
+                if(!/^\d{16}$/.test(nik)) return showToast('NIK harus tepat 16 digit Angka!', 'error');
+                
+                let dataWarga = await DB.get('warga');
+                let user = dataWarga.find(w => w.nik === nik);
+                if(!user) return showToast('NIK Tidak Terdaftar di Sistem DTSEN! Silakan registrasi jika belum terdata.', 'error');
+                
+                loggedInUser = user; role = 'warga';
+            } else {
+                const username = document.getElementById('loginIdAparatur').value;
+                const pass = document.getElementById('loginPassAparatur').value;
+                if(!username || !pass) return showToast('Lengkapi Username dan Kata Sandi!', 'error');
+                if(!/^[a-zA-Z]+$/.test(username)) return showToast('Username Aparatur hanya boleh huruf!', 'error');
+                
+                const reqRole = document.getElementById('loginRoleAparatur').value;
+                if(reqRole === 'pemerintah') {
+                    if(username !== "admin") return showToast('Akses Pemerintah Ditolak!', 'error');
+                } else if(reqRole === 'petugas') {
+                    if(username !== "petugas") return showToast('Akses Petugas Ditolak!', 'error');
+                }
+                role = reqRole;
+            }
+
+            document.getElementById('navLinks').style.display = 'none';
+            document.getElementById('navAuth').style.display = 'none';
+            document.getElementById('navLogout').style.display = 'block';
+            
+            showToast("Login diverifikasi, mengalihkan halaman...");
+            setTimeout(() => {
+                if (role === 'warga') navigate('dash-warga');
+                else if (role === 'petugas') navigate('dash-petugas');
+                else if (role === 'pemerintah') navigate('dash-pemerintah');
+            }, 800);
+        }
+
+        function logout() {
+            document.querySelectorAll('input, textarea').forEach(input => input.value = '');
+            document.getElementById('navLinks').style.display = 'flex';
+            document.getElementById('navAuth').style.display = 'block';
+            document.getElementById('navLogout').style.display = 'none';
+            loggedInUser = null; scrollToBeranda(); showToast("Anda telah keluar dari sistem.");
+        }
+
+        function openModal(modalId, id = null) { 
+            if(id) activeTaskNik = id; 
+            if(modalId === 'modalVerifikasi') {
+                document.getElementById('inputTglAksi').valueAsDate = new Date();
+            }
+            document.getElementById(modalId).classList.add('active'); 
+        }
+        function closeModal(modalId) { document.getElementById(modalId).classList.remove('active'); activeTaskNik = null; }
+
+        // ================= DASBOR WARGA =================
+        async function renderDashWarga() {
+            if(!loggedInUser) return;
+            let dataWarga = await DB.get('warga');
+            loggedInUser = dataWarga.find(w => w.nik === loggedInUser.nik);
+
+            let profilHtml = `
+                <div><div class="profile-label">Nama Lengkap (KRT)</div><div class="profile-value">${loggedInUser.nama}</div></div>
+                <div><div class="profile-label">NIK Nasional</div><div class="profile-value">${loggedInUser.nik}</div></div>
+                <div><div class="profile-label">Nomor Kartu Keluarga</div><div class="profile-value">${loggedInUser.noKk || '-'}</div></div>
+                <div><div class="profile-label">Tingkat Kesejahteraan</div><div class="profile-value">Desil ${loggedInUser.desil || 4}</div></div>
+                <div style="grid-column: 1 / -1;"><div class="profile-label">Alamat Domisili</div><div class="profile-value">${loggedInUser.alamat || 'Surabaya'}</div></div>
+            `;
+            document.getElementById('profilWargaContent').innerHTML = profilHtml;
+
+            let riwayatHtml = '';
+            if(!loggedInUser.riwayat || loggedInUser.riwayat.length === 0) {
+                riwayatHtml = `<div style="text-align:center; color:var(--text-muted); padding:1rem; border:1px dashed var(--border); border-radius:var(--radius-sm);">Belum ada riwayat penerimaan bansos.</div>`;
+            } else {
+                loggedInUser.riwayat.forEach(r => {
+                    riwayatHtml += `
+                    <div class="history-item">
+                        <div class="history-icon" style="background: #d1fae5; color: #059669;"><i data-feather="check"></i></div>
+                        <div><span style="font-weight: 600; color: var(--primary);">${r.jenis}</span><br>Tanggal Cair: ${r.tgl} <strong style="color: #059669;">(${r.status})</strong></div>
+                    </div>`;
+                });
+            }
+            document.getElementById('riwayatBansosWarga').innerHTML = riwayatHtml;
+
+            let statusHtml = '';
+            if(loggedInUser.status.includes('Sanggahan') || loggedInUser.status.includes('Anomali')) {
+                statusHtml = `<h3 style="color:#dc2626; margin-bottom:5px; justify-content:center;"><i data-feather="alert-circle"></i> DITANGGUHKAN</h3><p style="font-size:0.9rem;">Alasan: <strong>${loggedInUser.status}</strong></p>`;
+            } else if(loggedInUser.status.includes('Terjadwal')) {
+                 statusHtml = `<h3 style="color:#d97706; margin-bottom:5px; justify-content:center;"><i data-feather="calendar"></i> VERIFIKASI LAPANGAN</h3><p style="font-size:0.9rem;">Alasan: <strong>Menunggu kunjungan petugas pada ${loggedInUser.status.replace('Terjadwal: ', '')}</strong></p>`;
+            } else if(loggedInUser.status === 'Tidak Layak') {
+                statusHtml = `<h3 style="color:#dc2626; margin-bottom:5px; justify-content:center;"><i data-feather="x-circle"></i> TIDAK LAYAK BANSOS</h3><p style="font-size:0.9rem;">Alasan: <strong>Tidak memenuhi kriteria penerima manfaat.</strong></p>`;
+            } else {
+                statusHtml = `<h3 style="color:#059669; margin-bottom:5px; justify-content:center;"><i data-feather="check-circle"></i> LAYAK (AKTIF)</h3><p style="font-size:0.9rem;">Jadwal Alokasi Pusat Terkini: <strong>${globalJadwal}</strong></p>`;
+            }
+            document.getElementById('statusWargaContent').innerHTML = statusHtml;
+            feather.replace();
+        }
+
+        async function submitSanggahan() {
+            if(!loggedInUser) return;
+            let val = document.getElementById('kategoriSanggahan').value;
+            let teksLainnya = document.getElementById('teksLainnya') ? document.getElementById('teksLainnya').value : '';
+            let finalLaporan = val === 'lainnya' ? teksLainnya : val;
+
+            let dataWarga = await DB.get('warga');
+            let idx = dataWarga.findIndex(w => w.nik === loggedInUser.nik);
+            
+            dataWarga[idx].status = "Sanggahan: " + finalLaporan;
+            dataWarga[idx].risiko = "Warning";
+            await DB.set('warga', dataWarga);
+            
+            showToast("Sanggahan berhasil dikirim! Menunggu verifikasi petugas.", "success");
+            renderDashWarga(); 
+        }
+
+        // ================= DASBOR PEMERINTAH =================
+        function switchPemTab(tab) {
+            document.getElementById('tabPemDistribusi').classList.remove('active');
+            document.getElementById('tabPemApproval').classList.remove('active');
+            document.getElementById('pemDistribusiArea').style.display = 'none';
+            document.getElementById('pemApprovalArea').style.display = 'none';
+
+            if(tab === 'distribusi') {
+                document.getElementById('tabPemDistribusi').classList.add('active');
+                document.getElementById('pemDistribusiArea').style.display = 'block';
+                renderDashPemerintah();
+            } else {
+                document.getElementById('tabPemApproval').classList.add('active');
+                document.getElementById('pemApprovalArea').style.display = 'block';
+                renderApprovalTable();
+            }
+        }
+
+        async function renderDashPemerintah() {
+            let dataWarga = await DB.get('warga');
+            document.getElementById('totalDBWarga').innerText = dataWarga.length;
+            
+            let tbody = document.getElementById('tablePemerintahBody');
+            tbody.innerHTML = '';
+            let filter = document.getElementById('filterKecamatan') ? document.getElementById('filterKecamatan').value : 'semua';
+
+            dataWarga.forEach(w => {
+                if (filter === 'semua' || w.kec === filter) {
+                    let badgeClass = w.risiko === 'Kritis' ? 'badge-red' : (w.risiko === 'Warning' || w.risiko === 'Sedang' ? 'badge-yellow' : 'badge-green');
+                    let iconRisiko = w.risiko === 'Aman' ? 'check-circle' : 'alert-triangle';
+                    
+                    let actionBtn = w.risiko === 'Aman' ? 
+                        `<span style="color:var(--text-muted); font-size:0.85rem; display:inline-flex; align-items:center; gap:5px;"><i data-feather="check" style="width:14px;"></i> Aman</span>` : 
+                        `<button class="btn-action" onclick="this.innerHTML='<i data-feather=\\'check\\' style=\\'width:14px\\'></i> Terkirim'; this.style.background='#e2e8f0'; this.style.color='#64748b'; showToast('Instruksi terkirim ke petugas lapangan!'); feather.replace();"><i data-feather="bell" style="width:14px;"></i> Instruksikan ke Petugas</button>`;
+
+                    let tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td style="font-weight: 500;">${w.nama}<br><span style="font-size:0.8rem; color:var(--text-muted);">${w.nik}</span></td>
+                        <td style="font-size: 0.85rem;">${w.alamat}</td>
+                        <td style="font-size: 0.9rem; color: var(--primary); font-weight:500;">${w.status}</td>
+                        <td><span class="badge ${badgeClass}"><i data-feather="${iconRisiko}" style="width:12px;"></i> ${w.risiko}</span></td>
+                        <td>${actionBtn}</td>
+                    `;
+                    tbody.appendChild(tr);
+                }
+            });
+
+            // Riwayat Sinkronisasi (Distribusi)
+            let historyDistribusi = await DB.get('historyDistribusi') || [];
+            let histContainer = document.getElementById('historyDistribusi');
+            histContainer.innerHTML = '';
+            if(historyDistribusi.length === 0) {
+                histContainer.innerHTML = `<div style="text-align:center; color:var(--text-muted); padding:1rem; font-size:0.9rem;">Belum ada riwayat sinkronisasi penyaluran.</div>`;
+            } else {
+                historyDistribusi.forEach(h => {
+                    let iconStr = h.isDone ? `<div class="history-icon" style="background: #d1fae5; color: #059669;"><i data-feather="check" style="width: 18px; height: 18px;"></i></div>` : `<div class="history-icon" style="background: #fef3c7; color: #d97706;"><i data-feather="clock" style="width: 18px; height: 18px;"></i></div>`;
+                    let statusText = h.isDone ? `<strong style="color:#059669;">(Tersalurkan)</strong>` : `<strong style="color:#d97706;">(Proses Distribusi)</strong>`;
+                    histContainer.innerHTML += `
+                        <div class="history-item">
+                            ${iconStr}
+                            <div><span style="font-weight: 600; color: var(--primary);">Ditetapkan ${h.tglDitetapkan}</span><br>Kuota: ${h.kuota} Jiwa ${statusText}</div>
+                        </div>`;
+                });
+            }
+
+            // Laporan Petugas
+            let histVerifikasi = await DB.get('historyVerifikasi') || [];
+            let tbodyLap = document.getElementById('laporanPetugasPemerintahBody');
+            tbodyLap.innerHTML = '';
+            if(histVerifikasi.length === 0) {
+                tbodyLap.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 1.5rem;">Belum ada laporan verifikasi lapangan dari petugas.</td></tr>';
+            } else {
+                histVerifikasi.forEach(h => {
+                    let badgeStatus = h.hasil === 'Layak' ? 'badge-green' : 'badge-red';
+                    tbodyLap.innerHTML += `
+                        <tr>
+                            <td>${h.tglAksi}</td>
+                            <td style="font-weight: 500;">${h.nama} <br><span style="font-size:0.75rem; color:var(--text-muted);">${h.nik}</span></td>
+                            <td style="font-size: 0.85rem;">${h.statusAwal}</td>
+                            <td><span class="badge ${badgeStatus}">${h.hasil}</span></td>
+                            <td style="font-size: 0.85rem;">${h.deskripsi}</td>
+                        </tr>
+                    `;
+                });
+            }
+
+            feather.replace(); 
+        }
+
+        async function renderApprovalTable() {
+            let pending = await DB.get('pendingReg') || [];
+            let tbody = document.getElementById('tableApprovalBody');
+            if(pending.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: var(--text-muted); padding: 1.5rem;">Tidak ada pendaftar baru.</td></tr>';
+            } else {
+                tbody.innerHTML = '';
+                pending.forEach(p => {
+                    tbody.innerHTML += `
+                        <tr>
+                            <td>${p.tanggal}</td>
+                            <td style="font-weight: 500;">${p.nama}</td>
+                            <td><span class="badge ${p.tipe==='Warga'?'badge-blue':'badge-yellow'}">${p.tipe}</span></td>
+                            <td><button class="btn-action btn-action-alt" onclick="openModalDokumen('${p.id}')"><i data-feather="file-text" style="width:14px;"></i> Lihat Dokumen</button></td>
+                        </tr>
+                    `;
+                });
+            }
+            feather.replace();
+        }
+
+        async function openModalDokumen(id) {
+            activeApprovalId = id;
+            let pending = await DB.get('pendingReg');
+            let data = pending.find(p => p.id === id);
+            
+            document.getElementById('tolakArea').style.display = 'none';
+            document.getElementById('btnAreaRev').style.display = 'flex';
+            
+            let htmlDetail = `
+                <p><strong>Tipe Akses:</strong> ${data.tipe}</p>
+                <p><strong>Nama Lengkap:</strong> ${data.nama}</p>
+                <p><strong>No. WhatsApp:</strong> ${data.wa}</p>
+                <p><strong>Identitas:</strong> ${data.tipe === 'Warga' ? data.nik : data.username}</p>
+                <p style="font-size:0.8rem; margin-top:10px; color:var(--text-muted);">*Pastikan data dukcapil/SK penugasan sesuai sebelum ACC.</p>
+            `;
+            document.getElementById('dokumenDetail').innerHTML = htmlDetail;
+            document.getElementById('modalDokumen').classList.add('active');
+            feather.replace();
+        }
+
+        function showTolakArea() {
+            document.getElementById('btnAreaRev').style.display = 'none';
+            document.getElementById('tolakArea').style.display = 'block';
+        }
+
+        async function accRegistrasi() {
+            let pending = await DB.get('pendingReg');
+            let data = pending.find(p => p.id === activeApprovalId);
+            
+            if(data.tipe === 'Warga') {
+                let dataWarga = await DB.get('warga');
+                dataWarga.push({
+                    nik: data.nik, nama: data.nama, noKk: "-", desil: 4, alamat: "Surabaya", kec: "Umum", status: "Normal", risiko: "Aman", riwayat: []
+                });
+                await DB.set('warga', dataWarga);
+            }
+            let newPending = pending.filter(p => p.id !== activeApprovalId);
+            await DB.set('pendingReg', newPending);
+            
+            showToast("Registrasi berhasil di-ACC! Data dimasukkan ke pangkalan utama.", "success");
+            closeModal('modalDokumen');
+            renderApprovalTable();
+        }
+
+        async function prosesTolakRegistrasi() {
+            let alasan = document.getElementById('alasanTolakText').value;
+            if(!alasan) return showToast("Harap isi alasan penolakan!", "error");
+            
+            let pending = await DB.get('pendingReg');
+            let newPending = pending.filter(p => p.id !== activeApprovalId);
+            await DB.set('pendingReg', newPending);
+            
+            showToast(`Pendaftaran ditolak pada ${new Date().toLocaleDateString('id-ID')} dengan alasan: ${alasan}.`, "success");
+            document.getElementById('alasanTolakText').value = '';
+            closeModal('modalDokumen');
+            renderApprovalTable();
+        }
+
+        function changeQuota(amount) {
+            let input = document.getElementById('inputKuotaBansos');
+            let val = parseInt(input.value) + amount;
+            if(val < 0) val = 0;
+            input.value = val;
+        }
+
+        async function distributeQuota() {
+            let kuota = parseInt(document.getElementById('inputKuotaBansos').value);
+            let tgl = document.getElementById('inputTglPenyaluran').value;
+            
+            if(isNaN(kuota) || kuota <= 0) return showToast("Jumlah kuota harus lebih besar dari 0!", "error");
+            if(!tgl) return showToast("Pilih tanggal penyaluran!", "error");
+            
+            let dataWarga = await DB.get('warga');
+            let belumDapat = dataWarga.filter(w => w.status === "Normal" && (!w.riwayat || w.riwayat.length === 0));
+            
+            if(kuota > belumDapat.length) return showToast(`Kuota melebihi sisa warga Normal yang belum dapat (${belumDapat.length} Jiwa).`, "error");
+            
+            let shuffled = belumDapat.sort(() => 0.5 - Math.random());
+            let selectedWarga = shuffled.slice(0, kuota);
+            
+            let dateObj = new Date(tgl);
+            let today = new Date(); today.setHours(0,0,0,0); dateObj.setHours(0,0,0,0);
+            let dateStr = dateObj.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+            let isPastOrToday = dateObj <= today; 
+
+            selectedWarga.forEach(sw => {
+                let idx = dataWarga.findIndex(w => w.nik === sw.nik);
+                if(!dataWarga[idx].riwayat) dataWarga[idx].riwayat = [];
+                dataWarga[idx].riwayat.push({ tgl: dateStr, jenis: "Bansos Program DTSEN", status: isPastOrToday ? "Diterima" : "Diproses" });
+            });
+            await DB.set('warga', dataWarga);
+
+            let historyDistribusi = await DB.get('historyDistribusi') || [];
+            historyDistribusi.unshift({ tglDitetapkan: dateStr, kuota: kuota, isDone: isPastOrToday });
+            await DB.set('historyDistribusi', historyDistribusi);
+
+            globalJadwal = dateStr;
+            await DB.set('jadwalBansos', globalJadwal);
+            
+            showToast(`Sukses! ${kuota} bansos berhasil disalurkan secara acak.`, "success");
+            renderDashPemerintah();
+        }
+
+        // ================= DASBOR PETUGAS =================
+        async function renderDashPetugas() {
+            let dataWarga = await DB.get('warga');
+            let historyVerifikasi = await DB.get('historyVerifikasi') || [];
+            let tbodyAntrean = document.getElementById('petugasAntreanBody');
+            let tbodyRiwayat = document.getElementById('petugasRiwayatBody');
+            
+            let antrean = dataWarga.filter(w => w.status !== "Normal" && w.status !== "Tidak Layak");
+            
+            if(antrean.length === 0) {
+                tbodyAntrean.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 2rem;">Tidak ada antrean tugas verifikasi.</td></tr>';
+            } else {
+                tbodyAntrean.innerHTML = '';
+                antrean.forEach(t => {
+                    let isWarga = t.status.includes('Sanggahan');
+                    let badgeAsal = isWarga ? '<span class="badge badge-green">Warga</span>' : '<span class="badge badge-red">Pemerintah Pusat</span>';
+                    let actionHtml = t.status.includes('Terjadwal') ? 
+                        `<button class="btn-action btn-action-alt" onclick="openModal('modalVerifikasi', '${t.nik}')"><i data-feather="check-square" style="width:14px;"></i> Proses</button>` :
+                        `<button class="btn-action" onclick="openModal('modalJadwal', '${t.nik}')"><i data-feather="calendar" style="width:14px;"></i> Jadwal</button>`;
+
+                    tbodyAntrean.innerHTML += `
+                        <tr>
+                            <td>${badgeAsal}</td>
+                            <td style="font-weight: 500;">${t.nama} <br><span style="font-size:0.75rem; color:var(--text-muted);">${t.alamat}</span></td>
+                            <td style="font-size: 0.9rem;">${t.status}</td>
+                            <td><span class="badge badge-yellow">Perlu Tindakan</span></td>
+                            <td>${actionHtml}</td>
+                        </tr>
+                    `;
+                });
+            }
+
+            if(historyVerifikasi.length === 0) {
+                tbodyRiwayat.innerHTML = '<tr><td colspan="4" style="text-align: center; color: var(--text-muted); padding: 2rem;">Belum ada riwayat verifikasi selesai.</td></tr>';
+            } else {
+                tbodyRiwayat.innerHTML = '';
+                historyVerifikasi.forEach(h => {
+                    tbodyRiwayat.innerHTML += `
+                        <tr>
+                            <td>${h.tglAksi}</td>
+                            <td style="font-weight: 500;">${h.nama} <br><span style="font-size:0.75rem; color:var(--text-muted);">${h.nik}</span></td>
+                            <td style="font-size: 0.9rem;">${h.statusAwal}</td>
+                            <td><span class="badge ${h.hasil === 'Layak' ? 'badge-green' : 'badge-red'}">${h.hasil}</span></td>
+                        </tr>
+                    `;
+                });
+            }
+            feather.replace();
+        }
+
+        async function simpanJadwalPetugas() {
+            let tgl = document.getElementById('inputJadwal').value;
+            if(!tgl) return showToast('Pilih tanggal!', 'error');
+            
+            let dataWarga = await DB.get('warga');
+            let idx = dataWarga.findIndex(w => w.nik === activeTaskNik);
+            
+            let d = new Date(tgl);
+            let tglStr = d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+            
+            dataWarga[idx].status = "Terjadwal: " + tglStr;
+            await DB.set('warga', dataWarga);
+            
+            showToast('Jadwal tersimpan. Warga akan melihat notifikasi kunjungan.', 'success');
+            closeModal('modalJadwal');
+            renderDashPetugas();
+        }
+
+        async function selesaikanVerifikasi() {
+            let tglAksi = document.getElementById('inputTglAksi').value;
+            let hasil = document.getElementById('inputKesimpulan').value;
+            let deskripsi = document.getElementById('inputDeskripsi').value;
+
+            if(!tglAksi) return showToast("Tanggal aksi wajib diisi!", "error");
+            if(!deskripsi) return showToast("Deskripsi kondisi lapangan wajib diisi!", "error");
+
+            let dataWarga = await DB.get('warga');
+            let idx = dataWarga.findIndex(w => w.nik === activeTaskNik);
+            
+            let statusAwal = dataWarga[idx].status;
+            dataWarga[idx].status = hasil === 'Layak' ? "Normal" : "Tidak Layak";
+            dataWarga[idx].risiko = hasil === 'Layak' ? "Aman" : "Kritis";
+            await DB.set('warga', dataWarga);
+
+            let historyVerifikasi = await DB.get('historyVerifikasi') || [];
+            historyVerifikasi.unshift({ nik: dataWarga[idx].nik, nama: dataWarga[idx].nama, statusAwal: statusAwal, hasil: hasil, tglAksi: tglAksi, deskripsi: deskripsi });
+            await DB.set('historyVerifikasi', historyVerifikasi);
+            
+            showToast(`Laporan Selesai! Data dipindahkan ke Riwayat.`, 'success');
+            closeModal('modalVerifikasi');
+            renderDashPetugas();
+        }
+
+        // Start
+        window.onload = function() { initApp(); feather.replace(); }
+    </script>
+</body>
+</html>
